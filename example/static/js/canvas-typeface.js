@@ -1,1 +1,1 @@
-../../../canvas-typeface.js
+../../../canvas-typeface.js/canvas-typeface.js
