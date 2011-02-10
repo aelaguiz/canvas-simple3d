@@ -84,12 +84,20 @@ Simple3dCoord.prototype = {
 	 * @param {int} d - projection plane 
 	 */
 	project: function project(originOffset, d) {
-		var x = this.x + originOffset.x,
-			y = this.y + originOffset.y,
-			z = this.z + originOffset.z;
+		// First convert object coordinates to world coordinates
+		var worldX = this.x + originOffset.x,
+			worldY = this.y + originOffset.y,
+			worldZ = this.z + originOffset.z;//,
+			//denom = (worldZ/d);
 		
-		this.projected.x = x;
-		this.projected.y = y;
+		/*if(0 == denom) {
+			this.projected.x = worldX;
+			this.projected.y = worldY;
+		}
+		else {*/
+			this.projected.x = (d * worldX)/worldZ;
+			this.projected.y = (d * worldY)/worldZ;
+		//}
 	}
 }
 
@@ -153,9 +161,35 @@ Simple3dEdge.prototype = {
  * @param {Simple3dCoord} origin - Coordinates of origin in world space
  */
 Simple3dPolygon = function Simple3dPolygon(edges, origin) {
-	this.edges = edges;
-	this.origin = origin;
+	this.edges = undefined;
+	this.origin = undefined;
 	
+	if(edges instanceof Simple3dPolygon) { // Copy constructor
+		var base = edges,
+			edge,
+			newEdge;
+		
+		this.edges = [];
+		this.origin = new Simple3dCoord(base.origin.x, base.origin.y, base.origin.z);
+			
+		for(var i = 0, max = base.edges.length; i < max; i++) {
+			edge = base.edges[i];
+			
+			if(edge.start instanceof Simple3dCoord) {
+				newEdge = new Simple3dEdge(new Simple3dCoord(edge.start.x, edge.start.y, edge.start.z), new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
+			}
+			else if( i > 0) {
+				newEdge = new Simple3dEdge(new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
+			}
+			
+			this.edges.push(newEdge);
+		}
+	}
+	else {
+		this.edges = edges;
+		this.origin = origin;
+	}
+		
 	/*
 	 * Wire up edges to the edges in front of them if they are missing a start point
 	 */
@@ -219,11 +253,15 @@ Simple3dPolygon.prototype = {
 			edge = this.edges[i];
 			
 			if(edge.start instanceof Simple3dCoord) {
+				graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
 				graphics.moveTo(edge.start.projected.x, edge.start.projected.y);
 			}
 			
 			graphics.lineTo(edge.end.projected.x, edge.end.projected.y);
+			
+			graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
 		}
+		
 		
 		graphics.stroke();
 		graphics.restore();

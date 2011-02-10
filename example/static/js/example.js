@@ -32,39 +32,49 @@ new Simple3dEdge(new Simple3dCoord(-1,-1,-1),new Simple3dCoord(-1,-1,1)), // bot
 new Simple3dEdge(new Simple3dCoord(1,-1,-1),new Simple3dCoord(1,-1,1)), // bottom right edge
 new Simple3dEdge(new Simple3dCoord(1,1,-1),new Simple3dCoord(1,1,1)) // top right edge
 ],
-new Simple3dCoord(100, 100, 0));
+new Simple3dCoord(100, 100, 100));
+
+var cube2 = new Simple3dPolygon(cube);
 
 var cubeTransform = new Simple3dTransform(0,0,0, 50, 50, 50, 0, 0, 0);
 cube.transform(cubeTransform);
 
+cubeTransform = new Simple3dTransform(0,0,0, 25, 25, 25, 0, 0, 0);
+cube2.transform(cubeTransform);
+cube2.origin = new Simple3dCoord(400, 100, 100);
+
+var axis = new Simple3dPolygon([
+	//[new Simple3dEdge(new Simple3dCoord(-1,0,0), new Simple3dCoord(1,0,0)),
+	//new Simple3dEdge(new Simple3dCoord(0,-1,0), new Simple3dCoord(0,1,0)),
+	new Simple3dEdge(new Simple3dCoord(0,0,-1), new Simple3dCoord(0,0,1))
+	],
+new Simple3dCoord(0,0,0)
+)
+
+var axisTransform = new Simple3dTransform(0, 0, 0, 25,25,25,0,0,0);
+axis.transform(axisTransform);
+
+//cube2.transform(cubeTransform);
+
+var d = 0;
+
 function loop(canvas) {
 	var graphics = canvas.getContext('2d');
-	
+
 	graphics.save();
-	
+		
     /*
      * Render canvas
      */
     graphics.clearRect(0, 0, canvas.width, canvas.height);
-  
-  	var curY = 10;
-  	var size = 48;
-  	//for(var size = 12; size < 78; size+=4) {
-  		
-  		graphics.translate(100, size+2);
-  		
-  		/*Typeface.render("LOL TEXT", {'rotationX': rotationX*Math.PI/180, 'rotationY': rotationY*Math.PI/180, eyeDistance: 20000, z: 300, fontFamily: "Helvetiker", color: "#FF0000", fontSize: size}, graphics);
-  		
-  		Typeface.render("LOL TEXT", {'rotationX': rotationX*Math.PI/180, 'rotationY': rotationY*Math.PI/180, eyeDistance: 20000, z: 200, fontFamily: "Helvetiker", color: "#FF0000", fontSize: size}, graphics);
-  		
-  		Typeface.render("LOL TEXT", {'rotationX': rotationX*Math.PI/180, 'rotationY': rotationY*Math.PI/180, eyeDistance: 20000, z: 100, fontFamily: "Helvetiker", color: "#FF0000", fontSize: size}, graphics);*/
-  		
-  		Typeface.render("LOL TEXT", {'rotationX': rotationX*Math.PI/180, 'rotationY': rotationY*Math.PI/180, eyeDistance: 20000, z: 0, fontFamily: "Helvetiker", color: "#FF0000", fontSize: size}, graphics);
-  	//}
-  	
-    graphics.restore();
+
+    graphics.translate(canvas.width/2, canvas.height/2);
+    //cube.render(graphics, d);
+    //cube2.render(graphics, d);
     
-    cube.render(graphics);
+    axis.render(graphics, d);
+    
+    graphics.restore();
 }
 
 
@@ -119,6 +129,9 @@ function onDocumentMouseMove(event){
 		if(0 != xInc || 0 != yInc) {
 			var cubeTransform = new Simple3dTransform(xInc,yInc,0, 1, 1, 1, 0, 0, 0);
 			cube.transform(cubeTransform);
+			
+			//cubeTransform = new Simple3dTransform(-xInc,-yInc,0, 1, 1, 1, 0, 0, 0);
+			cube2.transform(cubeTransform);
 		}
 	}
 	
@@ -137,9 +150,14 @@ function onDocumentMouseUp(event){
 function onDocumentMouseWheel(event) {
 	if(event.wheelDelta > 0) {
 		rotationY +=10;
+		d += 1;
 	}
-	else
+	else {
 		rotationY -= 10;
+		d -= 1;
+	}
+	
+	console.log(" d = " + d);
 		
 	if(rotationY < 0)
 		rotationY = 0;
