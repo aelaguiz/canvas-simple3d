@@ -9,7 +9,9 @@ var canvas,
 var mouseX = undefined,
 	mouseY = undefined,
 	mouseDown = false,
-	angleIncrement = 5;
+	angleIncrement = 5,
+	rotationX = 1,
+	rotationY = -1;
 	
 $(document).ready(function(){
 	canvas = document.getElementById("canvas1");
@@ -100,7 +102,7 @@ $(document).ready(function(){
 	 */
 	setInterval(function(){
 		if(!mouseDown)
-		rotate(1, -1);
+		rotate(rotationX, rotationY);
         loop(canvas);
     }, 1000 / 30);
 });
@@ -171,27 +173,27 @@ function rotate(rotationX,rotationY) {
 function onDocumentMouseMove(event){
 	if(undefined !== mouseX) {
 		var deltaX = event.offsetX - mouseX,
-			deltaY = event.offsetY - mouseY,
-			rotationX = 0,
-			rotationY = 0;
+			deltaY = event.offsetY - mouseY;
 		
 		if(mouseDown) {
 			if(deltaX != 0) {
-				if(deltaX >= 0) {
-					rotationY +=angleIncrement;
+				rotationY =angleIncrement;
+				if(deltaX < 0) {
+					rotationY *= -1;
 				}
-				else {
-					rotationY -= angleIncrement;
-				}
+			}
+			else {
+				rotationY = 0;
 			}
 			
 			if(deltaY != 0) {
-				if(deltaY >= 0) {
-					rotationX +=angleIncrement;
+				rotationX = angleIncrement;
+				if(deltaY < 0) {
+					rotationX *= -1;
 				}
-				else {
-					rotationX -= angleIncrement;
-				}
+			}
+			else {
+				rotationX = 0;
 			}
 			
 			rotate(rotationX, rotationY);			
