@@ -1,6 +1,3 @@
-[submodule "canvas-typeface.js"]
-	path = canvas-typeface.js
-	url = git@github.com:aelaguiz/canvas-typeface.js.git
 [submodule "example/express"]
 	path = example/express
 	url = https://github.com/visionmedia/express.git
