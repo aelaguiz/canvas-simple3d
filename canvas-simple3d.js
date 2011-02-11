@@ -153,76 +153,11 @@ Simple3dEdge.prototype = {
 	}
 }
 
-/**
- * Simple3dPolygon objects are in object space
- * @constructor
- * @param {array} edges - Array of Simple3dEdge objects, if an edge has an undefined start it is pointed to the edge before it
- * @param {Simple3dCoord} origin - Coordinates of origin in world space
- */
-Simple3dPolygon = function Simple3dPolygon(edges, origin) {
-	this.edges = undefined;
-	this.origin = undefined;
-	this.projection = {};
-	
-	if(edges instanceof Simple3dPolygon) { // Copy constructor
-		var base = edges,
-			edge,
-			newEdge;
-		
-		this.edges = [];
-		this.origin = new Simple3dCoord(base.origin.x, base.origin.y, base.origin.z);
-			
-		for(var i = 0, max = base.edges.length; i < max; i++) {
-			edge = base.edges[i];
-			
-			if(edge.start instanceof Simple3dCoord) {
-				newEdge = new Simple3dEdge(new Simple3dCoord(edge.start.x, edge.start.y, edge.start.z), new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
-			}
-			else if( i > 0) {
-				newEdge = new Simple3dEdge(new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
-			}
-			
-			this.edges.push(newEdge);
-		}
-	}
-	else {
-		this.edges = edges;
-		this.origin = origin;
-	}
-		
-	/*
-	 * Wire up edges to the edges in front of them if they are missing a start point
-	 */
-	var edge;
-		
-	for(var i = 1, max = this.edges.length; i < max; i++) {
-		edge = this.edges[i];
-		
-		if(undefined === edge.start) {
-			edge.start = this.edges[i-1];
-		}	
-	}
+Simple3dObject = function Simple3dObject(origin) {
+	this.origin = origin;
 }
 
-Simple3dPolygon.prototype = {
-	constructor: Simple3dPolygon,
-	
-	/**
-	 * Transform the current polygon using Transform spec about the point specified by originOffset 
-	 * 
-	 * @param {Simple3dTransform}  transform
-	 * @param {Simple3dCoord} originOffset - translation vector to translate the current object's object coordinates to world coordinates generally
-	 */
-	transform: function transform(transform,originOffset) {
-		var edge;
-		
-		for(var i = 0, max = this.edges.length; i < max; i++) {
-			edge = this.edges[i];
-			
-			edge.transform(transform, originOffset);		
-		}
-	},
-	
+Simple3dObject.prototype = {
 	/*
 	 * projSettings: 
 	 * e - display plane depth (z = e)
@@ -266,16 +201,23 @@ Simple3dPolygon.prototype = {
 	},
 	
 	/**
+	 * Transform the current polygon using Transform spec about the point specified by originOffset 
+	 * 
+	 * @param {Simple3dTransform}  transform
+	 * @param {Simple3dCoord} originOffset - translation vector to translate the current object's object coordinates to world coordinates generally
+	 */
+	transform: function transform(transform,originOffset) {
+
+	},
+	
+	
+	
+	/**
 	 * Project the current polygon onto the plane defined by z = d
 	 * @param {int} options object (optional) 
 	 */
 	project: function project(options) {
-		
-		for(var i = 0, max = this.edges.length; i < max; i++) {
-			edge = this.edges[i];
-			
-			edge.project(this.origin, this.projection);			
-		}
+
 	},
 	
 	/**
@@ -284,39 +226,131 @@ Simple3dPolygon.prototype = {
 	 * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
 	 */
 	drawPath: function drawPath(graphics, options) {
-		options = options ? options : {};
+
+	}
+}
+
+/**
+ * Simple3dPolygon objects are in object space
+ * @constructor
+ * @param {array} edges - Array of Simple3dEdge objects, if an edge has an undefined start it is pointed to the edge before it
+ * @param {Simple3dCoord} origin - Coordinates of origin in world space
+ */
+Simple3dPolygon = function Simple3dPolygon(edges, origin) {
+	Simple3dObject.call(this, origin);
+	
+	this.edges = undefined;
+	this.projection = {};
+	
+	if(edges instanceof Simple3dPolygon) { // Copy constructor
+		var base = edges,
+			edge,
+			newEdge;
 		
-		this.project(options);
-		
-		var edge;
-		
-		if(options.labelVertices) {
-			if(undefined !== options.labelFont) {
-				graphics.font = options.labelFont;
-			}
-			else {
-				graphics.font = '6px san-serif';
-			}
-		}
-		
-		graphics.beginPath();
-		
-		for(var i = 0, max = this.edges.length; i < max; i++) {
-			edge = this.edges[i];
+		this.edges = [];
+		this.origin = new Simple3dCoord(base.origin.x, base.origin.y, base.origin.z);
+			
+		for(var i = 0, max = base.edges.length; i < max; i++) {
+			edge = base.edges[i];
 			
 			if(edge.start instanceof Simple3dCoord) {
-				if(options.labelVertices) {
-					graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
-				}
-				
-				graphics.moveTo(edge.start.projected.x, edge.start.projected.y);
+				newEdge = new Simple3dEdge(new Simple3dCoord(edge.start.x, edge.start.y, edge.start.z), new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
+			}
+			else if( i > 0) {
+				newEdge = new Simple3dEdge(new Simple3dCoord(edge.end.x, edge.end.y, edge.end.z));
 			}
 			
-			graphics.lineTo(edge.end.projected.x, edge.end.projected.y);
-			
+			this.edges.push(newEdge);
+		}
+	}
+	else {
+		this.edges = edges;
+	}
+		
+	/*
+	 * Wire up edges to the edges in front of them if they are missing a start point
+	 */
+	var edge;
+		
+	for(var i = 1, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		if(undefined === edge.start) {
+			edge.start = this.edges[i-1];
+		}	
+	}
+}
+
+Simple3dPolygon.prototype = new Simple3dObject;
+Simple3dPolygon.prototype.constructor = Simple3dPolygon,
+	
+/**
+ * Transform the current polygon using Transform spec about the point specified by originOffset 
+ * 
+ * @param {Simple3dTransform}  transform
+ * @param {Simple3dCoord} originOffset - translation vector to translate the current object's object coordinates to world coordinates generally
+ */
+Simple3dPolygon.prototype.transform = function transform(transform,originOffset) {
+	var edge;
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		edge.transform(transform, originOffset);		
+	}
+},
+
+/**
+ * Project the current polygon onto the plane defined by z = d
+ * @param {int} options object (optional) 
+ */
+Simple3dPolygon.prototype.project = function project(options) {
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		edge.project(this.origin, this.projection);			
+	}
+},
+
+/**
+ * Draws the polygons path and leaves it open to be filled/closed/stroked, call setProjection first
+ * @param {Canvis2dContext} graphics
+ * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
+ */
+Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
+	options = options ? options : {};
+	
+	this.project(options);
+	
+	var edge;
+	
+	if(options.labelVertices) {
+		if(undefined !== options.labelFont) {
+			graphics.font = options.labelFont;
+		}
+		else {
+			graphics.font = '6px san-serif';
+		}
+	}
+	
+	graphics.beginPath();
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		if(edge.start instanceof Simple3dCoord) {
 			if(options.labelVertices) {
-				graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
+				graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
 			}
+			
+			graphics.moveTo(edge.start.projected.x, edge.start.projected.y);
+		}
+		
+		graphics.lineTo(edge.end.projected.x, edge.end.projected.y);
+		
+		if(options.labelVertices) {
+			graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
 		}
 	}
 }
