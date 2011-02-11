@@ -92,7 +92,7 @@ Simple3dCoord.prototype = {
 		// Perspective project the world coordinates (convert to camera coordinates)
 		worldX = worldX * -(1/proj.w);
 		worldY = worldY * (1/proj.h);
-		worldZ =  - (worldZ * (-(proj.near+proj.far)/proj.d) + ((-2 * proj.near*proj.far)/proj.d));
+		worldZ =  (worldZ * (-(proj.near+proj.far)/proj.d) + ((-2 * proj.near*proj.far)/proj.d));
 		
 		// Project onto 2d surface
 		this.projected.x = worldX / (proj.e/worldZ);
@@ -301,8 +301,9 @@ Simple3dPolygon.prototype = {
 			}
 		}
 		
-		
-		graphics.stroke();
+		graphics.fillStyle = 'rgb(128,128,128)';
+		graphics.fill();
+		//graphics.stroke();
 		graphics.restore();
 	}
 }

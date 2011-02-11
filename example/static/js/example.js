@@ -42,7 +42,7 @@ var cube6 = new Simple3dPolygon(cube);
 var cube7 = new Simple3dPolygon(cube);
 var cube8 = new Simple3dPolygon(cube);
 
-var cubeTransform = new Simple3dTransform(0,0,0, 15, 15, 15, 0, 0, 0);
+var cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 0, 0, 0);
 cube.transform(cubeTransform);
 cube2.transform(cubeTransform);
 cube3.transform(cubeTransform);
@@ -68,7 +68,7 @@ var axis = new Simple3dPolygon([
 new Simple3dCoord(0,0,0)
 )
 
-var axisTransform = new Simple3dTransform(45, 45, 45, 200,200,200,0,0,0);
+var axisTransform = new Simple3dTransform(45, 45, 45, 100,100,100,0,0,0);
 axis.transform(axisTransform);
 
 //cube2.transform(cubeTransform);
@@ -105,10 +105,10 @@ function loop(canvas) {
     graphics.strokeStyle = 'rgb(0,0,0)';
 	graphics.save();
     graphics.translate(canvas.width/2, canvas.height/2);
-    cube.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
+    /*cube.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
    	cube2.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
    	cube3.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
-   	cube4.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
+   	cube4.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);*/
    	cube5.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
    	cube6.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
    	cube7.render(graphics, d, far, near, canvas.width, canvas.height, renderOptions);
@@ -181,6 +181,8 @@ function onDocumentMouseMove(event){
 			cube6.transform(cubeTransform);
 			cube7.transform(cubeTransform);
 			cube8.transform(cubeTransform);
+			
+			axis.transform(cubeTransform);
 		}
 	}
 	
