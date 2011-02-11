@@ -81,23 +81,22 @@ Simple3dCoord.prototype = {
 	/**
 	 * Project the current point onto the plane defined by z = d
 	 * @param {Simple3dCoord} originOffset - origin
-	 * @param {int} d - projection plane 
+	 * @param {int} proj - projection settnigs
 	 */
-	project: function project(originOffset, d) {
+	project: function project(originOffset, proj) {
 		// First convert object coordinates to world coordinates
 		var worldX = this.x + originOffset.x,
 			worldY = this.y + originOffset.y,
-			worldZ = this.z + originOffset.z;//,
-			//denom = (worldZ/d);
+			worldZ = this.z + originOffset.z;
+			
+		// Perspective project the world coordinates (convert to camera coordinates)
+		worldX = worldX * -(1/proj.w);
+		worldY = worldY * (1/proj.h);
+		worldZ = worldZ * (-(proj.near+proj.far)/proj.d) + ((-2 * proj.near*proj.far)/proj.d);
 		
-		/*if(0 == denom) {
-			this.projected.x = worldX;
-			this.projected.y = worldY;
-		}
-		else {*/
-			this.projected.x = (d * worldX)/worldZ;
-			this.projected.y = (d * worldY)/worldZ;
-		//}
+		// Project onto 2d surface
+		this.projected.x = worldX / (proj.e/worldZ);
+		this.projected.y = worldY / (proj.e/worldZ);
 	}
 }
 
@@ -142,15 +141,15 @@ Simple3dEdge.prototype = {
 	/**
 	 * Project the current edge onto the plane defined by z = d
 	 * @param {Simple3dCoord}  originOffset - origin
-	 * @param {int} d - projection plane 
+	 * @param {int} proj - projection settings 
 	 */
-	project: function project(originOffset, d) {
+	project: function project(originOffset, proj) {
 		// We assume that if the start is another edge it has already been projected, so only projected the start if it is a point
 		if(this.start instanceof Simple3dCoord) {
-			this.start.project(originOffset, d);
+			this.start.project(originOffset, proj);
 		}
 		
-		this.end.project(originOffset, d);
+		this.end.project(originOffset, proj);
 	}
 }
 
@@ -223,17 +222,46 @@ Simple3dPolygon.prototype = {
 		}
 	},
 	
+	/*
+	 * projSettings: 
+	 * e - display plane depth (z = e)
+	 * far - far clipping plane (z)
+	 * near - near clipping plane (z)
+	 * screenHeight = screen height in px
+	 * screenWidth = screen width in px
+	 * 
+	 * calculated:
+	 * h = -Math.tan(projSettings.screenHeight/2),
+			aspectRatio = projSettings.screenWidth/projSettings.screenHeight,
+			w=-aspectRatio*h,
+			d = far-near
+	 */
+	 
 	/**
 	 * Project the current polygon onto the plane defined by z = d
 	 * @param {int} d - projection plane 
 	 */
-	project: function project(d) {
-		var edge;
-		
+	project: function project(e, near, far, screenWidth, screenHeight, options) {
+		var edge,
+			h = Math.tan(screenHeight/2),
+			aspectRatio = screenWidth/screenHeight,
+			w = aspectRatio*h,
+			d = far-near;
+			
+		var proj = {
+			'e': e,
+			'near': near,
+			'far': far,
+			'screenWidth': screenWidth,
+			'screenHeight': screenHeight,
+			'h': h,
+			'w': w,
+			'd': d
+		}
 		for(var i = 0, max = this.edges.length; i < max; i++) {
 			edge = this.edges[i];
 			
-			edge.project(this.origin, d);			
+			edge.project(this.origin, proj);			
 		}
 	},
 	
@@ -241,25 +269,36 @@ Simple3dPolygon.prototype = {
 	 * Renders the current polygon projected onto plane defined by z = d
 	 * @param {int} d - projection plane 
 	 */
-	render: function render(graphics, d) {
-		this.project(d);
+	render: function render(graphics, e, near, far, screenWidth, screenHeight, options) {
+		options = options ? options : {};
+		
+		this.project(e, near, far, screenWidth, screenHeight, options);
 		
 		var edge;
 		
 		graphics.save();
+		
+		if(options.labelVertices) {
+			graphics.font = '6px san-serif';
+		}
 		graphics.beginPath();
 		
 		for(var i = 0, max = this.edges.length; i < max; i++) {
 			edge = this.edges[i];
 			
 			if(edge.start instanceof Simple3dCoord) {
-				graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
+				if(options.labelVertices) {
+					graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
+				}
+				
 				graphics.moveTo(edge.start.projected.x, edge.start.projected.y);
 			}
 			
 			graphics.lineTo(edge.end.projected.x, edge.end.projected.y);
 			
-			graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
+			if(options.labelVertices) {
+				graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
+			}
 		}
 		
 		
