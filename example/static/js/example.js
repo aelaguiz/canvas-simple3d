@@ -26,22 +26,42 @@ $(document).ready(function(){
 		new Simple3dEdge(new Simple3dCoord(1,-1,-1),new Simple3dCoord(1,-1,1)), // bottom right edge
 		new Simple3dEdge(new Simple3dCoord(1,1,-1),new Simple3dCoord(1,1,1)) // top right edge
 		],
-		new Simple3dCoord(75, 75, -175));
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 0, 0, 0);
+		new Simple3dCoord(0, 0, 0));
 	
 	for(var i = 1, max = 8; i < max; i++) {
 		cubes[i] = new Simple3dPolygon(cubes[0]);
-		cubes[i].transform(cubeTransform);
 	}
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, -125);
 	cubes[0].transform(cubeTransform);
 	
-	cubes[1].origin = new Simple3dCoord(-75, 75, -175);
-	cubes[2].origin = new Simple3dCoord(-75, -75, -175);
-	cubes[3].origin = new Simple3dCoord(75, -75, -175);
-	cubes[4].origin = new Simple3dCoord(75, 75, 175);
-	cubes[5].origin = new Simple3dCoord(-75, 75, 175);
-	cubes[6].origin = new Simple3dCoord(-75, -75, 175);
-	cubes[7].origin = new Simple3dCoord(75, -75, 175);
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, 75, -125);
+	cubes[1].transform(cubeTransform);
+	//cubes[1].origin = new Simple3dCoord(-75, 75, -125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, -75, -125);
+	cubes[2].transform(cubeTransform);
+	//cubes[2].origin = new Simple3dCoord(-75, -75, -125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, -75, -125);
+	cubes[3].transform(cubeTransform);
+	//cubes[3].origin = new Simple3dCoord(75, -75, -125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, 125);
+	cubes[4].transform(cubeTransform);
+	//cubes[4].origin = new Simple3dCoord(75, 75, 125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, 75, 125);
+	cubes[5].transform(cubeTransform);
+	//cubes[5].origin = new Simple3dCoord(-75, 75, 125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, -75, 125);
+	cubes[6].transform(cubeTransform);
+	//cubes[6].origin = new Simple3dCoord(-75, -75, 125);
+	
+	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, -75, 125);
+	cubes[7].transform(cubeTransform);
+	//cubes[7].origin = new Simple3dCoord(75, -75, 125);
 	
 	/*
 	 * Set up axis
@@ -183,10 +203,10 @@ function onDocumentMouseUp(event){
 
 function onDocumentMouseWheel(event) {
 	if(event.wheelDelta > 0) {
-		d += 1;
+		d += 25;
 	}
 	else {
-		d -= 1;
+		d -= 25;
 	}
 	
 	console.log(" d = " + d);
