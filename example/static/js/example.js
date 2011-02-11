@@ -8,6 +8,7 @@ var canvas,
 
 var mouseX = undefined,
 	mouseY = undefined,
+	mouseDown = false,
 	angleIncrement = 5;
 	
 $(document).ready(function(){
@@ -98,6 +99,8 @@ $(document).ready(function(){
 	 * Render loop
 	 */
 	setInterval(function(){
+		if(!mouseDown)
+		rotate(1, -1);
         loop(canvas);
     }, 1000 / 30);
 });
@@ -153,6 +156,18 @@ function loop() {
     graphics.restore();
 }
 
+function rotate(rotationX,rotationY) {
+	if(0 != rotationX || 0 != rotationY) {
+		var cubeTransform = new Simple3dTransform(rotationX,rotationY,0, 1, 1, 1, 0, 0, 0);
+		
+		for(var i = 0, max = cubes.length; i < max; i++) {
+			cubes[i].transform(cubeTransform);
+		}
+
+		axis.transform(cubeTransform);
+	}
+}
+
 function onDocumentMouseMove(event){
 	if(undefined !== mouseX) {
 		var deltaX = event.offsetX - mouseX,
@@ -160,32 +175,26 @@ function onDocumentMouseMove(event){
 			rotationX = 0,
 			rotationY = 0;
 		
-		if(deltaX != 0) {
-			if(deltaX >= 0) {
-				rotationY +=angleIncrement;
+		if(mouseDown) {
+			if(deltaX != 0) {
+				if(deltaX >= 0) {
+					rotationY +=angleIncrement;
+				}
+				else {
+					rotationY -= angleIncrement;
+				}
 			}
-			else {
-				rotationY -= angleIncrement;
-			}
-		}
-		
-		if(deltaY != 0) {
-			if(deltaY >= 0) {
-				rotationX +=angleIncrement;
-			}
-			else {
-				rotationX -= angleIncrement;
-			}
-		}
-		
-		if(0 != rotationX || 0 != rotationY) {
-			var cubeTransform = new Simple3dTransform(rotationX,rotationY,0, 1, 1, 1, 0, 0, 0);
 			
-			for(var i = 0, max = cubes.length; i < max; i++) {
-    			cubes[i].transform(cubeTransform);
+			if(deltaY != 0) {
+				if(deltaY >= 0) {
+					rotationX +=angleIncrement;
+				}
+				else {
+					rotationX -= angleIncrement;
+				}
 			}
-    
-			axis.transform(cubeTransform);
+			
+			rotate(rotationX, rotationY);			
 		}
 	}
 	
@@ -194,11 +203,13 @@ function onDocumentMouseMove(event){
 }
 
 function onDocumentMouseDown(event){
-
+	mouseX = event.offsetX;
+	mouseY = event.offsetY;
+	mouseDown = true;
 }
 
 function onDocumentMouseUp(event){
-    
+	mouseDown = false;    
 }
 
 function onDocumentMouseWheel(event) {
