@@ -162,6 +162,7 @@ Simple3dEdge.prototype = {
 Simple3dPolygon = function Simple3dPolygon(edges, origin) {
 	this.edges = undefined;
 	this.origin = undefined;
+	this.projection = {};
 	
 	if(edges instanceof Simple3dPolygon) { // Copy constructor
 		var base = edges,
@@ -236,19 +237,23 @@ Simple3dPolygon.prototype = {
 			w=-aspectRatio*h,
 			d = far-near
 	 */
-	 
+	
 	/**
-	 * Project the current polygon onto the plane defined by z = d
-	 * @param {int} d - projection plane 
+	 * Sets the projection settings
+	 * @param {int} e - distance from screen
+	 * @param {int} near - near clip plane
+	 * @param {int} far - far clip plane
+	 * @param {int} screenWidth
+	 * @param {int} screenHeight 
 	 */
-	project: function project(e, near, far, screenWidth, screenHeight, options) {
+	setProjection: function setProjection(e, near, far, screenWidth, screenHeight) {
 		var edge,
 			h = Math.tan(screenHeight/2),
 			aspectRatio = screenWidth/screenHeight,
 			w = aspectRatio*h,
 			d = far-near;
 			
-		var proj = {
+		this.projection = {
 			'e': e,
 			'near': near,
 			'far': far,
@@ -258,29 +263,42 @@ Simple3dPolygon.prototype = {
 			'w': w,
 			'd': d
 		}
+	},
+	
+	/**
+	 * Project the current polygon onto the plane defined by z = d
+	 * @param {int} options object (optional) 
+	 */
+	project: function project(options) {
+		
 		for(var i = 0, max = this.edges.length; i < max; i++) {
 			edge = this.edges[i];
 			
-			edge.project(this.origin, proj);			
+			edge.project(this.origin, this.projection);			
 		}
 	},
 	
 	/**
-	 * Renders the current polygon projected onto plane defined by z = d
-	 * @param {int} d - projection plane 
+	 * Draws the polygons path and leaves it open to be filled/closed/stroked, call setProjection first
+	 * @param {Canvis2dContext} graphics
+	 * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
 	 */
-	render: function render(graphics, e, near, far, screenWidth, screenHeight, options) {
+	drawPath: function drawPath(graphics, options) {
 		options = options ? options : {};
 		
-		this.project(e, near, far, screenWidth, screenHeight, options);
+		this.project(options);
 		
 		var edge;
 		
-		graphics.save();
-		
 		if(options.labelVertices) {
-			graphics.font = '6px san-serif';
+			if(undefined !== options.labelFont) {
+				graphics.font = options.labelFont;
+			}
+			else {
+				graphics.font = '6px san-serif';
+			}
 		}
+		
 		graphics.beginPath();
 		
 		for(var i = 0, max = this.edges.length; i < max; i++) {
@@ -300,10 +318,5 @@ Simple3dPolygon.prototype = {
 				graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
 			}
 		}
-		
-		graphics.fillStyle = 'rgb(128,128,128)';
-		graphics.fill();
-		//graphics.stroke();
-		graphics.restore();
 	}
 }
