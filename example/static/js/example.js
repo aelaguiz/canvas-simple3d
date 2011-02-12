@@ -34,7 +34,10 @@ $(document).ready(function(){
 			textTransform: options.textTransform
 		};*/
 		
-	text[0] = new Simple3dText("Text, yes?", 100, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	text[0] = new Simple3dText("T", 100, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	
+	var textTransform = new Simple3dTransform(0,0,0, 10, 10, 10, 0, 0, 0);
+	text[0].transform(textTransform);
 	
 	/*
 	 * Set up curves
@@ -177,11 +180,17 @@ function setProjections() {
 	for(var i = 0, max = cubes.length; i < max; i++) {
 		cubes[i].setProjection(d, far, near, canvas.width, canvas.height); 
 	}
+	
+	for(var i = 0, max = text.length; i < max; i++) {
+		text[i].setProjection(d, far, near, canvas.width, canvas.height); 
+	}
+	
+	
 	axis.setProjection(d, far, near, canvas.width, canvas.height);
 }
 
 function loop() {
-	var	renderOptions = {labelVertices: true};
+	var	renderOptions = {labelVertices: false};
 		
 	var graphics = canvas.getContext('2d');
 
@@ -194,6 +203,7 @@ function loop() {
 
 	graphics.strokeStyle = 'rgb(255,240,240)';
     graphics.beginPath();
+    
     for(var x = 0; x < canvas.width; x+= 10) {
     	for(var y = 0; y < canvas.height; y += 10) {
     		graphics.moveTo(x, 0);
@@ -208,7 +218,7 @@ function loop() {
     graphics.strokeStyle = 'rgb(0,0,0)';
 	graphics.save();
     graphics.translate(canvas.width/2, canvas.height/2);
-    
+    /*
     for(var i = 0, max = curves.length; i < max; i++) {
     	curves[i].drawPath(graphics, renderOptions);
     	graphics.stroke();	
@@ -217,7 +227,13 @@ function loop() {
     for(var i = 0, max = cubes.length; i < max; i++) {
     	cubes[i].drawPath(graphics, renderOptions);
     	graphics.stroke();	
-    }
+    }*/
+    
+    for(var i = 0, max = text.length; i < max; i++) {
+		text[i].drawPath(graphics, renderOptions);
+    	graphics.stroke(); 
+	}
+	
     
     axis.drawPath(graphics, renderOptions);
     graphics.stroke();
@@ -237,6 +253,10 @@ function rotate(rotationX,rotationY) {
 		
 		for(var i = 0, max = curves.length; i < max; i++) {
 			curves[i].transform(transform);
+		}
+		
+		for(var i = 0, max = text.length; i < max; i++) {
+			text[i].transform(transform);
 		}
 
 		axis.transform(transform);

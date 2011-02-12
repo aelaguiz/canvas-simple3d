@@ -462,7 +462,6 @@ Simple3dText = function Simple3dText(text, z, options, origin) {
 		var curFrame = frames[0];
 		var curGlyphEdges = [];
 		var lastCoord = undefined;
-		var z = z;
 		
 		this.save = function save() {
 			var newFrame = new frame();
@@ -495,24 +494,24 @@ Simple3dText = function Simple3dText(text, z, options, origin) {
 		}
 		
 		this.moveTo = function moveTo(x, y) {
-			lastCoord = new Simple3dCoord(x,y,this.z);
+			lastCoord = new Simple3dCoord(x,y,z);
 		}
 		
 		this.lineTo = function lineTo(x,y) {
-			curGlyphEdges.push(new Simple3dEdge(lastCoord, new Simple3dCoord(x,y, this.z)));
+			curGlyphEdges.push(new Simple3dEdge(lastCoord, new Simple3dCoord(x,y, z)));
 			lastCoord = undefined;
 		}
 		
 		this.quadraticCurveTo = function quadraticCurveTo(cpX,cpY,x,y) {
-			curGlyphEdges.push(new Simple3dQuadraticCurve(lastCoord, new Simple3dCoord(cpX,cpY, this.z), 
-															new Simple3dCoord(x,y, this.z)));
+			curGlyphEdges.push(new Simple3dQuadraticCurve(lastCoord, new Simple3dCoord(cpX,cpY, z), 
+															new Simple3dCoord(x,y, z)));
 			lastCoord = undefined;
 		}
 		
 		this.bezierCurveTo = function bezierCurveTo(cp1X,cp1Y,cp2X,cp2Y, x,y) {
-			curGlyphEdges.push(new Simple3dBezierCurve(lastCoord, new Simple3dCoord(cp1X,cp1Y, this.z), 
-															new Simple3dCoord(cp2X,cp2Y, this.z),
-															new Simple3dCoord(x,y, this.z)));
+			curGlyphEdges.push(new Simple3dBezierCurve(lastCoord, new Simple3dCoord(cp1X,cp1Y, z), 
+															new Simple3dCoord(cp2X,cp2Y, z),
+															new Simple3dCoord(x,y, z)));
 			lastCoord = undefined;
 		}
 		
@@ -528,3 +527,27 @@ Simple3dText = function Simple3dText(text, z, options, origin) {
 
 Simple3dText.prototype = new Simple3dObject;
 Simple3dText.prototype.constructor = Simple3dText;
+
+/**
+ * Draws the polygons path and leaves it open to be filled/closed/stroked, call setProjection first
+ * @param {Canvis2dContext} graphics
+ * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
+ */
+Simple3dText.prototype.drawPath = function drawPath(graphics, options) {
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		this.glyphs[i].drawPath(graphics, options);
+	}
+}
+
+
+Simple3dText.prototype.transform = function transform(transform,originOffset) {
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		this.glyphs[i].transform(transform,originOffset);
+	}
+}
+
+Simple3dText.prototype.setProjection = function setProjection(e, near, far, screenWidth, screenHeight) {
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		this.glyphs[i].setProjection(e,near,far,screenWidth,screenHeight);
+	}
+}
