@@ -1,8 +1,9 @@
 var canvas,
+	curves = [],
 	cubes = [],
-	cubeTransform,
 	axis,
 	axisTransform,
+	origin,
 	d = 400,				// Distance eye is from screen
 	far = 10000;			// Far clipping plane
 
@@ -15,6 +16,45 @@ var mouseX = undefined,
 	
 $(document).ready(function(){
 	canvas = document.getElementById("canvas1");
+	
+	origin = new Simple3dCoord(0, 0, 0);
+	
+	curves[0] = new Simple3dPolygon([
+					new Simple3dQuadraticCurve(new Simple3dCoord(-1, 0, 0), new Simple3dCoord(0, 1, 0), new Simple3dCoord(1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0, -1, 0), new Simple3dCoord(-1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0, 0, -1), new Simple3dCoord(1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0, 0, 1), new Simple3dCoord(-1, 0, 0)),
+					
+					new Simple3dQuadraticCurve(new Simple3dCoord(0.707106781, 0.707106781, 0.707106781), new Simple3dCoord(1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0.707106781, 0.707106781, -0.707106781), new Simple3dCoord(-1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0.707106781, -0.707106781, 0.707106781), new Simple3dCoord(1, 0, 0)),
+					new Simple3dQuadraticCurve(new Simple3dCoord(0.707106781, -0.707106781, -0.707106781), new Simple3dCoord(-1, 0, 0)),
+					
+					],
+					origin);
+					
+	curves[1] = new Simple3dPolygon([
+					new Simple3dBezierCurve(
+					new Simple3dCoord(-1, 0, 0), new Simple3dCoord(-1, 1, 0), new Simple3dCoord(1, 1, 0), new Simple3dCoord(1, 0, 0)),
+					new Simple3dBezierCurve(	 new Simple3dCoord(1, -1, 0), new Simple3dCoord(-1, -1, 0), new Simple3dCoord(-1, 0, 0)),
+					new Simple3dBezierCurve(	 new Simple3dCoord(-1, 0, -1), new Simple3dCoord(1, 0, -1), new Simple3dCoord(1, 0, 0)),
+					new Simple3dBezierCurve(	 new Simple3dCoord(1, 0, 1), new Simple3dCoord(-1, 0, 1), new Simple3dCoord(-1, 0, 0)),
+					
+					new Simple3dBezierCurve(new Simple3dCoord(-0.707106781, 0.707106781, 0.707106781), new Simple3dCoord(0.707106781, 0.707106781, 0.707106781), new Simple3dCoord(1, 0, 0)),
+					new Simple3dBezierCurve(new Simple3dCoord(0.707106781, 0.707106781, -0.707106781), new Simple3dCoord(-0.707106781, 0.707106781, -0.707106781), new Simple3dCoord(-1, 0, 0)),
+					new Simple3dBezierCurve(new Simple3dCoord(-0.707106781, -0.707106781, 0.707106781), new Simple3dCoord(0.707106781, -0.707106781, 0.707106781), new Simple3dCoord(1, 0, 0)),
+					new Simple3dBezierCurve(new Simple3dCoord(0.707106781, -0.707106781, -0.707106781), new Simple3dCoord(-0.707106781, -0.707106781, -0.707106781), new Simple3dCoord(-1, 0, 0)),
+
+					
+					
+					],
+					origin);
+					
+	var curveTransform = new Simple3dTransform(0,0,0, 35, 35, 35, 75, 75, 0);
+	curves[0].transform(curveTransform);
+	
+	curveTransform = new Simple3dTransform(0,0,0, 35, 35, 35, -75, -75, 0);
+	curves[1].transform(curveTransform);
 	
 	/*
 	 * Set up cubes
@@ -29,13 +69,13 @@ $(document).ready(function(){
 		new Simple3dEdge(new Simple3dCoord(1,-1,-1),new Simple3dCoord(1,-1,1)), // bottom right edge
 		new Simple3dEdge(new Simple3dCoord(1,1,-1),new Simple3dCoord(1,1,1)) // top right edge
 		],
-		new Simple3dCoord(0, 0, 0));
+		origin);
 	
 	for(var i = 1, max = 8; i < max; i++) {
 		cubes[i] = new Simple3dPolygon(cubes[0]);
 	}
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, -125);
+	var cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, -125);
 	cubes[0].transform(cubeTransform);
 	
 	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, 75, -125);
@@ -74,7 +114,7 @@ $(document).ready(function(){
 		new Simple3dEdge(new Simple3dCoord(0,-1,0), new Simple3dCoord(0,1,0)),
 		new Simple3dEdge(new Simple3dCoord(0,0,-1), new Simple3dCoord(0,0,1))
 		],
-		new Simple3dCoord(0,0,0));
+		origin);
 	
 	axisTransform = new Simple3dTransform(45, 45, 45, 100,100,100,0,0,0);
 	axis.transform(axisTransform);
@@ -109,6 +149,10 @@ $(document).ready(function(){
 
 function setProjections() {
 	var	near = d;
+	
+	for(var i = 0, max = curves.length; i < max; i++) {
+		curves[i].setProjection(d, far, near, canvas.width, canvas.height); 
+	}
 	
 	for(var i = 0, max = cubes.length; i < max; i++) {
 		cubes[i].setProjection(d, far, near, canvas.width, canvas.height); 
@@ -145,6 +189,11 @@ function loop() {
 	graphics.save();
     graphics.translate(canvas.width/2, canvas.height/2);
     
+    for(var i = 0, max = curves.length; i < max; i++) {
+    	curves[i].drawPath(graphics, renderOptions);
+    	graphics.stroke();	
+    }
+    
     for(var i = 0, max = cubes.length; i < max; i++) {
     	cubes[i].drawPath(graphics, renderOptions);
     	graphics.stroke();	
@@ -160,13 +209,17 @@ function loop() {
 
 function rotate(rotationX,rotationY) {
 	if(0 != rotationX || 0 != rotationY) {
-		var cubeTransform = new Simple3dTransform(rotationX,rotationY,0, 1, 1, 1, 0, 0, 0);
+		var transform = new Simple3dTransform(rotationX,rotationY,0, 1, 1, 1, 0, 0, 0);
 		
 		for(var i = 0, max = cubes.length; i < max; i++) {
-			cubes[i].transform(cubeTransform);
+			cubes[i].transform(transform);
+		}
+		
+		for(var i = 0, max = curves.length; i < max; i++) {
+			curves[i].transform(transform);
 		}
 
-		axis.transform(cubeTransform);
+		axis.transform(transform);
 	}
 }
 

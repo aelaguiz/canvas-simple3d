@@ -106,8 +106,9 @@ Simple3dCoord.prototype = {
  * @constructor
  * @param {Simple3dCoord or Simple3dEdge} start (optional)
  * @param {Simple3dCoord} end
+ * @param {Array} controlPoints - optional array of control points useful for some edge types
  */
-Simple3dEdge = function Simple3dEdge(start,end) {
+Simple3dEdge = function Simple3dEdge(start,end, controlPoints) {
 	this.start = start;
 	this.end = end;
 	
@@ -117,6 +118,10 @@ Simple3dEdge = function Simple3dEdge(start,end) {
 	if(undefined === this.end) {
 		this.end = this.start;
 		this.start = undefined;
+	}
+	
+	if(undefined !== controlPoints) {
+		this.controlPoints = controlPoints;
 	}
 }
 
@@ -135,6 +140,12 @@ Simple3dEdge.prototype = {
 			this.start.transform(transform, originOffset);
 		}
 		
+		if(undefined !== this.controlPoints) {
+			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
+				this.controlPoints[i].transform(transform, originOffset);
+			}
+		}
+		
 		this.end.transform(transform, originOffset);
 	},
 	
@@ -149,9 +160,87 @@ Simple3dEdge.prototype = {
 			this.start.project(originOffset, proj);
 		}
 		
+		if(undefined !== this.controlPoints) {
+			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
+				this.controlPoints[i].project(originOffset, proj);
+			}
+		}
+		
 		this.end.project(originOffset, proj);
+	},
+	
+	drawPath: function drawPath(graphics) {
+		if(this.start instanceof Simple3dCoord) {
+			graphics.moveTo(this.start.projected.x, this.start.projected.y);
+		}
+		
+		graphics.lineTo(this.end.projected.x, this.end.projected.y);
 	}
 }
+
+/**
+ * Simple 3d quadratic curve
+ * @param {Simple3dCoord or Simple3dEdge} start (optional)
+ * @param {Simple3dCoord} control point
+ * @param {Simple3dCoord} end
+ */
+Simple3dQuadraticCurve = function Simple3dQuadraticCurve(start, cp, end) {
+	/*
+	 * Allow for missing start
+	 */
+	if(undefined === end) {
+		end = cp;
+		cp = start;
+		start = undefined;
+	}
+	
+	Simple3dEdge.call(this, start,end, [cp]);
+}
+
+Simple3dQuadraticCurve.prototype = new Simple3dEdge;
+Simple3dQuadraticCurve.prototype.constructor = Simple3dQuadraticCurve;
+
+Simple3dQuadraticCurve.prototype.drawPath = function drawPath(graphics) {
+	if(this.start instanceof Simple3dCoord) {
+		graphics.moveTo(this.start.projected.x, this.start.projected.y);
+	}
+	
+	graphics.quadraticCurveTo(this.controlPoints[0].projected.x, this.controlPoints[0].projected.y, this.end.projected.x, this.end.projected.y);
+}
+
+
+/**
+ * Simple 3d quadratic curve
+ * @param {Simple3dCoord or Simple3dEdge} start (optional)
+ * @param {Simple3dCoord} control point
+ * @param {Simple3dCoord} end
+ */
+Simple3dBezierCurve = function Simple3dBezierCurve(start, cp1, cp2, end) {
+	/*
+	 * Allow for missing start
+	 */
+	if(undefined === end) {
+		end = cp2;
+		cp2 = cp1;
+		cp1 = start;
+		start = undefined;
+	}
+	
+	Simple3dEdge.call(this, start,end, [cp1, cp2]);
+}
+
+Simple3dBezierCurve.prototype = new Simple3dEdge;
+Simple3dBezierCurve.prototype.constructor = Simple3dBezierCurve;
+
+Simple3dBezierCurve.prototype.drawPath = function drawPath(graphics) {
+	if(this.start instanceof Simple3dCoord) {
+		graphics.moveTo(this.start.projected.x, this.start.projected.y);
+	}
+	
+	graphics.bezierCurveTo(this.controlPoints[0].projected.x, this.controlPoints[0].projected.y, this.controlPoints[1].projected.x, this.controlPoints[1].projected.y, 
+							this.end.projected.x, this.end.projected.y);
+}
+
 
 Simple3dObject = function Simple3dObject(origin) {
 	this.origin = origin;
@@ -226,7 +315,7 @@ Simple3dObject.prototype = {
 	 * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
 	 */
 	drawPath: function drawPath(graphics, options) {
-
+		
 	}
 }
 
@@ -343,11 +432,9 @@ Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
 			if(options.labelVertices) {
 				graphics.fillText("(" + edge.start.x.toFixed(0) + "," + edge.start.y.toFixed(0) + "," + edge.start.z.toFixed(0) + ")", edge.start.projected.x, edge.start.projected.y);
 			}
-			
-			graphics.moveTo(edge.start.projected.x, edge.start.projected.y);
 		}
 		
-		graphics.lineTo(edge.end.projected.x, edge.end.projected.y);
+		edge.drawPath(graphics);
 		
 		if(options.labelVertices) {
 			graphics.fillText("(" + edge.end.x.toFixed(0) + "," + edge.end.y.toFixed(0) + "," + edge.end.z.toFixed(0) + ")", edge.end.projected.x, edge.end.projected.y);
