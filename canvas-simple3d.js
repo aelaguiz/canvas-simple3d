@@ -444,25 +444,32 @@ Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
 
 
 
-Simple3dText = function Simple3dText(text, options, origin) {
+Simple3dText = function Simple3dText(text, z, options, origin) {
 	Simple3dObject.call(this, origin);
 	
-	this.edges = undefined;
+	this.glyphs = [];
 	this.projection = {};
 
-	var _fakeCanvas = new (function (){
+	var _fakeCanvas = new (function (z,glyphList,origin){
 		var frame = function frame() {
 			this.scaleX = 1;
 			this.scaleY = 1;
+			this.transX = 0;
+			this.transY = 0;
 		};
 		
 		var frames = [new frame()];
 		var curFrame = frames[0];
+		var curGlyphEdges = [];
+		var lastCoord = undefined;
+		var z = z;
 		
 		this.save = function save() {
 			var newFrame = new frame();
 			frame.scaleX = newFrame.scaleX;
 			frame.scaleY = newFrame.scaleY;
+			frame.transX = newFrame.transX;
+			frame.transY = newFrame.transY;
 			
 			frames.push(newFrame);
 			curFrame = newFrame;
@@ -477,7 +484,44 @@ Simple3dText = function Simple3dText(text, options, origin) {
 			curFrame.scaleX = scaleX;
 			curFrame.scaleY = scaleY;
 		}
-	})();
+		
+		this.translate = function translate(transX, transY) {
+			curFrame.transX = transX;
+			curFrame.transY = transY;			
+		}
+		
+		this.beginPath = function beginPath() {
+						
+		}
+		
+		this.moveTo = function moveTo(x, y) {
+			lastCoord = new Simple3dCoord(x,y,this.z);
+		}
+		
+		this.lineTo = function lineTo(x,y) {
+			curGlyphEdges.push(new Simple3dEdge(lastCoord, new Simple3dCoord(x,y, this.z)));
+			lastCoord = undefined;
+		}
+		
+		this.quadraticCurveTo = function quadraticCurveTo(cpX,cpY,x,y) {
+			curGlyphEdges.push(new Simple3dQuadraticCurve(lastCoord, new Simple3dCoord(cpX,cpY, this.z), 
+															new Simple3dCoord(x,y, this.z)));
+			lastCoord = undefined;
+		}
+		
+		this.bezierCurveTo = function bezierCurveTo(cp1X,cp1Y,cp2X,cp2Y, x,y) {
+			curGlyphEdges.push(new Simple3dBezierCurve(lastCoord, new Simple3dCoord(cp1X,cp1Y, this.z), 
+															new Simple3dCoord(cp2X,cp2Y, this.z),
+															new Simple3dCoord(x,y, this.z)));
+			lastCoord = undefined;
+		}
+		
+		this.stroke = this.fill = function fillStroke() {
+			glyphList.push(new Simple3dPolygon(curGlyphEdges, origin));
+			curGlyphEdges = []
+			lastCoord = undefined;
+		}
+	})(z,this.glyphs,this.origin);
 	
 	Typeface.render(text, options, _fakeCanvas);	
 }

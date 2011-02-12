@@ -34,7 +34,7 @@ $(document).ready(function(){
 			textTransform: options.textTransform
 		};*/
 		
-	text[0] = new Simple3dText("Text, yes?", {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	text[0] = new Simple3dText("Text, yes?", 100, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
 	
 	/*
 	 * Set up curves
