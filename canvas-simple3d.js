@@ -371,7 +371,7 @@ Simple3dPolygon = function Simple3dPolygon(edges, origin) {
 }
 
 Simple3dPolygon.prototype = new Simple3dObject;
-Simple3dPolygon.prototype.constructor = Simple3dPolygon,
+Simple3dPolygon.prototype.constructor = Simple3dPolygon;
 	
 /**
  * Transform the current polygon using Transform spec about the point specified by originOffset 
@@ -387,7 +387,7 @@ Simple3dPolygon.prototype.transform = function transform(transform,originOffset)
 		
 		edge.transform(transform, originOffset);		
 	}
-},
+}
 
 /**
  * Project the current polygon onto the plane defined by z = d
@@ -400,7 +400,7 @@ Simple3dPolygon.prototype.project = function project(options) {
 		
 		edge.project(this.origin, this.projection);			
 	}
-},
+}
 
 /**
  * Draws the polygons path and leaves it open to be filled/closed/stroked, call setProjection first
@@ -441,3 +441,46 @@ Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
 		}
 	}
 }
+
+
+
+Simple3dText = function Simple3dText(text, options, origin) {
+	Simple3dObject.call(this, origin);
+	
+	this.edges = undefined;
+	this.projection = {};
+
+	var _fakeCanvas = new (function (){
+		var frame = function frame() {
+			this.scaleX = 1;
+			this.scaleY = 1;
+		};
+		
+		var frames = [new frame()];
+		var curFrame = frames[0];
+		
+		this.save = function save() {
+			var newFrame = new frame();
+			frame.scaleX = newFrame.scaleX;
+			frame.scaleY = newFrame.scaleY;
+			
+			frames.push(newFrame);
+			curFrame = newFrame;
+		}
+		
+		this.restore = function restore() {
+			frames.pop();
+			curFrame = frames[0];		
+		}
+		
+		this.scale = function scale(scaleX, scaleY) {
+			curFrame.scaleX = scaleX;
+			curFrame.scaleY = scaleY;
+		}
+	})();
+	
+	Typeface.render(text, options, _fakeCanvas);	
+}
+
+Simple3dText.prototype = new Simple3dObject;
+Simple3dText.prototype.constructor = Simple3dText;

@@ -1,6 +1,7 @@
 var canvas,
 	curves = [],
 	cubes = [],
+	text = [],
 	axis,
 	axisTransform,
 	origin,
@@ -19,6 +20,25 @@ $(document).ready(function(){
 	
 	origin = new Simple3dCoord(0, 0, 0);
 	
+	/*render: function(text, options, ctx) {
+		var style = { 
+			color: options.color, 
+			fontFamily: options.fontFamily.split()[0].replace(/(^"|^'|'$|"$)/g, '').toLowerCase(), 
+			fontSize: options.fontSize,
+			fontWeight: this.cssFontWeightMap[options.fontWeight ? options.fontWeight : 'normal'],
+			fontStyle: options.fontStyle ? options.fontStyle : 'normal',
+			fontStretchPercent: this.cssFontStretchMap[options['font-stretch'] ? options['font-stretch'] : 'default'],
+			textDecoration: options.textDecoration,
+			lineHeight: options.lineHeight,
+			letterSpacing: options.letterSpacing ? options.letterSpacing : 0,
+			textTransform: options.textTransform
+		};*/
+		
+	text[0] = new Simple3dText("Text, yes?", {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	
+	/*
+	 * Set up curves
+	 */
 	curves[0] = new Simple3dPolygon([
 					new Simple3dQuadraticCurve(new Simple3dCoord(-1, 0, 0), new Simple3dCoord(0, 1, 0), new Simple3dCoord(1, 0, 0)),
 					new Simple3dQuadraticCurve(new Simple3dCoord(0, -1, 0), new Simple3dCoord(-1, 0, 0)),
