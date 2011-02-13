@@ -12,32 +12,30 @@ var mouseX = undefined,
 	mouseY = undefined,
 	mouseDown = false,
 	angleIncrement = 5,
-	rotationX = 1,
-	rotationY = -1;
+	rotationX =0,
+	rotationY = 0;
 	
 $(document).ready(function(){
+	var initX = 45,
+		initY = 45,
+		initZ = 45;
+		
 	canvas = document.getElementById("canvas1");
 	
 	origin = new Simple3dCoord(0, 0, 0);
+
+	text[0] = new Simple3dText("Amir", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	text[1] = new Simple3dText("Was", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
 	
-	/*render: function(text, options, ctx) {
-		var style = { 
-			color: options.color, 
-			fontFamily: options.fontFamily.split()[0].replace(/(^"|^'|'$|"$)/g, '').toLowerCase(), 
-			fontSize: options.fontSize,
-			fontWeight: this.cssFontWeightMap[options.fontWeight ? options.fontWeight : 'normal'],
-			fontStyle: options.fontStyle ? options.fontStyle : 'normal',
-			fontStretchPercent: this.cssFontStretchMap[options['font-stretch'] ? options['font-stretch'] : 'default'],
-			textDecoration: options.textDecoration,
-			lineHeight: options.lineHeight,
-			letterSpacing: options.letterSpacing ? options.letterSpacing : 0,
-			textTransform: options.textTransform
-		};*/
-		
-	text[0] = new Simple3dText("T", 100, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
-	
-	var textTransform = new Simple3dTransform(0,0,0, 10, 10, 10, 0, 0, 0);
+	var textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, -100, -100, 100);
 	text[0].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 0, 0, 0);
+	text[1].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 100, 100, -100);
+	text[2].transform(textTransform);
 	
 	/*
 	 * Set up curves
@@ -73,10 +71,10 @@ $(document).ready(function(){
 					],
 					origin);
 					
-	var curveTransform = new Simple3dTransform(0,0,0, 35, 35, 35, 75, 75, 0);
+	var curveTransform = new Simple3dTransform(initX,initY,initZ, 35, 35, 35, 75, 75, 0);
 	curves[0].transform(curveTransform);
 	
-	curveTransform = new Simple3dTransform(0,0,0, 35, 35, 35, -75, -75, 0);
+	curveTransform = new Simple3dTransform(initX,initY,initZ, 35, 35, 35, -75, 75, 0);
 	curves[1].transform(curveTransform);
 	
 	/*
@@ -98,34 +96,34 @@ $(document).ready(function(){
 		cubes[i] = new Simple3dPolygon(cubes[0]);
 	}
 	
-	var cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, -125);
+	var cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, 75, 75, -125);
 	cubes[0].transform(cubeTransform);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, 75, -125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, -75, 75, -125);
 	cubes[1].transform(cubeTransform);
 	//cubes[1].origin = new Simple3dCoord(-75, 75, -125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, -75, -125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, -75, -75, -125);
 	cubes[2].transform(cubeTransform);
 	//cubes[2].origin = new Simple3dCoord(-75, -75, -125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, -75, -125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, 75, -75, -125);
 	cubes[3].transform(cubeTransform);
 	//cubes[3].origin = new Simple3dCoord(75, -75, -125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, 75, 125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, 75, 75, 125);
 	cubes[4].transform(cubeTransform);
 	//cubes[4].origin = new Simple3dCoord(75, 75, 125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, 75, 125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, -75, 75, 125);
 	cubes[5].transform(cubeTransform);
 	//cubes[5].origin = new Simple3dCoord(-75, 75, 125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, -75, -75, 125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, -75, -75, 125);
 	cubes[6].transform(cubeTransform);
 	//cubes[6].origin = new Simple3dCoord(-75, -75, 125);
 	
-	cubeTransform = new Simple3dTransform(45,45,45, 15, 15, 15, 75, -75, 125);
+	cubeTransform = new Simple3dTransform(initX,initY,initZ, 15, 15, 15, 75, -75, 125);
 	cubes[7].transform(cubeTransform);
 	//cubes[7].origin = new Simple3dCoord(75, -75, 125);
 	
@@ -139,7 +137,7 @@ $(document).ready(function(){
 		],
 		origin);
 	
-	axisTransform = new Simple3dTransform(45, 45, 45, 100,100,100,0,0,0);
+	axisTransform = new Simple3dTransform(initX,initY,initZ, 100,100,100,0,0,0);
 	axis.transform(axisTransform);
 	
 	setProjections();
@@ -190,7 +188,7 @@ function setProjections() {
 }
 
 function loop() {
-	var	renderOptions = {labelVertices: false};
+	var	renderOptions = {labelVertices: true};
 		
 	var graphics = canvas.getContext('2d');
 
@@ -218,7 +216,7 @@ function loop() {
     graphics.strokeStyle = 'rgb(0,0,0)';
 	graphics.save();
     graphics.translate(canvas.width/2, canvas.height/2);
-    /*
+    
     for(var i = 0, max = curves.length; i < max; i++) {
     	curves[i].drawPath(graphics, renderOptions);
     	graphics.stroke();	
@@ -227,11 +225,12 @@ function loop() {
     for(var i = 0, max = cubes.length; i < max; i++) {
     	cubes[i].drawPath(graphics, renderOptions);
     	graphics.stroke();	
-    }*/
+    }
     
     for(var i = 0, max = text.length; i < max; i++) {
-		text[i].drawPath(graphics, renderOptions);
-    	graphics.stroke(); 
+		text[i].drawPath(graphics, renderOptions, function() {
+			graphics.stroke();
+		});
 	}
 	
     

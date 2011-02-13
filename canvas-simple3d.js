@@ -450,48 +450,36 @@ Simple3dText = function Simple3dText(text, z, options, origin) {
 	this.glyphs = [];
 	this.projection = {};
 
+	/*
+	 * Rather than modify the canvas-typeface library I chose to simply adapt to it by sending it a fake canvas to 
+	 * render to and then transforming it's vector primitives to an array of polygons
+	 */
 	var _fakeCanvas = new (function (z,glyphList,origin){
-		var frame = function frame() {
-			this.scaleX = 1;
-			this.scaleY = 1;
-			this.transX = 0;
-			this.transY = 0;
-		};
+		var scaleX = 1,
+			scaleY = 1,
+			transX = 0,
+			transY = 0,
+			curGlyphEdges = [],
+			glyphWidth,
+			glyphHeight,
+			lastCoord = undefined;
 		
-		var frames = [new frame()];
-		var curFrame = frames[0];
-		var curGlyphEdges = [];
-		var lastCoord = undefined;
+		this.save = function save() {}
+		this.restore = function restore() {}
 		
-		this.save = function save() {
-			var newFrame = new frame();
-			frame.scaleX = newFrame.scaleX;
-			frame.scaleY = newFrame.scaleY;
-			frame.transX = newFrame.transX;
-			frame.transY = newFrame.transY;
+		this.scale = function scale(sX, sY) {
+			scaleX = sX;
+			scaleY = sY;
+		}
+		
+		this.translate = function translate(tX, tY) {
+			this.finishPolygon();
 			
-			frames.push(newFrame);
-			curFrame = newFrame;
+			transX += tX;
+			transY += tY;			
 		}
 		
-		this.restore = function restore() {
-			frames.pop();
-			curFrame = frames[0];		
-		}
-		
-		this.scale = function scale(scaleX, scaleY) {
-			curFrame.scaleX = scaleX;
-			curFrame.scaleY = scaleY;
-		}
-		
-		this.translate = function translate(transX, transY) {
-			curFrame.transX = transX;
-			curFrame.transY = transY;			
-		}
-		
-		this.beginPath = function beginPath() {
-						
-		}
+		this.beginPath = function beginPath() {}
 		
 		this.moveTo = function moveTo(x, y) {
 			lastCoord = new Simple3dCoord(x,y,z);
@@ -503,25 +491,39 @@ Simple3dText = function Simple3dText(text, z, options, origin) {
 		}
 		
 		this.quadraticCurveTo = function quadraticCurveTo(cpX,cpY,x,y) {
-			curGlyphEdges.push(new Simple3dQuadraticCurve(lastCoord, new Simple3dCoord(cpX,cpY, z), 
-															new Simple3dCoord(x,y, z)));
+			curGlyphEdges.push(new Simple3dQuadraticCurve(lastCoord, new Simple3dCoord(cpX, cpY, z), 
+															new Simple3dCoord(x, y, z)));
 			lastCoord = undefined;
 		}
 		
 		this.bezierCurveTo = function bezierCurveTo(cp1X,cp1Y,cp2X,cp2Y, x,y) {
-			curGlyphEdges.push(new Simple3dBezierCurve(lastCoord, new Simple3dCoord(cp1X,cp1Y, z), 
-															new Simple3dCoord(cp2X,cp2Y, z),
+			curGlyphEdges.push(new Simple3dBezierCurve(lastCoord, new Simple3dCoord(cp1X, cp1Y, z), 
+															new Simple3dCoord(cp2X, cp2Y, z),
 															new Simple3dCoord(x,y, z)));
 			lastCoord = undefined;
 		}
 		
-		this.stroke = this.fill = function fillStroke() {
-			glyphList.push(new Simple3dPolygon(curGlyphEdges, origin));
-			curGlyphEdges = []
-			lastCoord = undefined;
+		this.finishPolygon = function finishPolygon() {
+			if(0 != curGlyphEdges.length) {
+				var polygon = new Simple3dPolygon(curGlyphEdges, origin),
+					translateTransform = new Simple3dTransform(0, 0, 0, 1, 1, 1, transX, transY, 0),
+					scaleTransform = new Simple3dTransform(0, 0, 0, scaleX, -scaleY, 1, 0, 0, 0);
+				
+				polygon.transform(translateTransform);
+				polygon.transform(scaleTransform);
+				
+				glyphList.push(polygon);
+				curGlyphEdges = []
+				lastCoord = undefined;
+			}
 		}
+		
+		this.stroke = this.fill = this.finishPolygon;
 	})(z,this.glyphs,this.origin);
 	
+	/*
+	 * Render the text onto our fake canvas which will generate the polygons for each glyph
+	 */
 	Typeface.render(text, options, _fakeCanvas);	
 }
 
@@ -529,16 +531,18 @@ Simple3dText.prototype = new Simple3dObject;
 Simple3dText.prototype.constructor = Simple3dText;
 
 /**
- * Draws the polygons path and leaves it open to be filled/closed/stroked, call setProjection first
+ * Draws the text one character at a time, calling a callback after each path has been completed so that they may be
+ * rendered
  * @param {Canvis2dContext} graphics
  * @param {int} options object (optional) - Really only useful if you wrote this library (aka Amir)
+ * @param {Function} callback
  */
-Simple3dText.prototype.drawPath = function drawPath(graphics, options) {
+Simple3dText.prototype.drawPath = function drawPath(graphics, options, callback) {
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
 		this.glyphs[i].drawPath(graphics, options);
+		callback();
 	}
 }
-
 
 Simple3dText.prototype.transform = function transform(transform,originOffset) {
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
