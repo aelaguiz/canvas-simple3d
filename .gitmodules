@@ -4,3 +4,6 @@
 [submodule "canvas-typeface.js"]
 	path = canvas-typeface.js
 	url = git@github.com:aelaguiz/canvas-typeface.js.git
+[submodule "example/static/js/jKey"]
+	path = example/static/js/jKey
+	url = https://github.com/OscarGodson/jKey.git

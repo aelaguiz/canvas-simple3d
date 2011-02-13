@@ -13,7 +13,10 @@ var mouseX = undefined,
 	mouseDown = false,
 	angleIncrement = 5,
 	rotationX =0,
-	rotationY = 0;
+	rotationY = 0,
+	vertexLabels = false,
+	fill = false,
+	color = undefined;
 	
 $(document).ready(function(){
 	var initX = 45,
@@ -22,11 +25,20 @@ $(document).ready(function(){
 		
 	canvas = document.getElementById("canvas1");
 	
+	setRandomColor();
+	
 	origin = new Simple3dCoord(0, 0, 0);
 
 	text[0] = new Simple3dText("Amir", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
 	text[1] = new Simple3dText("Was", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
 	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	
+	text[3] = new Simple3dText("t - Toggle vertex labels", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[4] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[5] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[6] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[7] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[8] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
 	
 	var textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, -100, -100, 100);
 	text[0].transform(textTransform);
@@ -36,6 +48,24 @@ $(document).ready(function(){
 	
 	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 100, 100, -100);
 	text[2].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -45, 0);
+	text[3].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -65, 0);
+	text[4].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -85, 0);
+	text[5].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -105, 0);
+	text[6].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -125, 0);
+	text[7].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -145, 0);
+	text[8].transform(textTransform);
 	
 	/*
 	 * Set up curves
@@ -158,6 +188,29 @@ $(document).ready(function(){
 		onDocumentMouseWheel(event);
 	};
 	
+	$(window).jkey('t',function(){
+	    vertexLabels = !vertexLabels;
+	});
+	
+	$(window).jkey('o',function(){
+	    rotationX = 1;
+		rotationY = 1;
+	});
+	
+	$(window).jkey('s',function(){
+	    rotationX = 0;
+		rotationY = 0;
+	});
+	
+	$(window).jkey('f',function(){
+	    fill = !fill;
+	});
+	
+	$(window).jkey('c',function(){
+	    setRandomColor();
+	});
+
+
 	/*
 	 * Render loop
 	 */
@@ -167,6 +220,10 @@ $(document).ready(function(){
         loop(canvas);
     }, 1000 / 30);
 });
+
+function setRandomColor() {
+	color = {r: Math.floor(Math.random() * 256), g: Math.floor(Math.random() * 256), b: Math.floor(Math.random() * 256) };
+}
 
 function setProjections() {
 	var	near = d;
@@ -188,9 +245,16 @@ function setProjections() {
 }
 
 function loop() {
-	var	renderOptions = {labelVertices: true};
+	var	renderOptions = {'labelVertices': vertexLabels};
 		
 	var graphics = canvas.getContext('2d');
+	
+	var fillStroke = function() {
+		if(fill)
+			graphics.fill();
+		else
+			graphics.stroke();	
+	}
 
 	graphics.save();
 		
@@ -213,29 +277,30 @@ function loop() {
     }
     graphics.stroke();
     
-    graphics.strokeStyle = 'rgb(0,0,0)';
+    graphics.strokeStyle = 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+    graphics.fillStyle = 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
 	graphics.save();
     graphics.translate(canvas.width/2, canvas.height/2);
     
     for(var i = 0, max = curves.length; i < max; i++) {
     	curves[i].drawPath(graphics, renderOptions);
-    	graphics.stroke();	
+    	fillStroke();	
     }
     
     for(var i = 0, max = cubes.length; i < max; i++) {
     	cubes[i].drawPath(graphics, renderOptions);
-    	graphics.stroke();	
+    	fillStroke();
     }
     
     for(var i = 0, max = text.length; i < max; i++) {
 		text[i].drawPath(graphics, renderOptions, function() {
-			graphics.stroke();
+			fillStroke();
 		});
 	}
 	
     
     axis.drawPath(graphics, renderOptions);
-    graphics.stroke();
+    fillStroke();
     
     graphics.restore();
     
