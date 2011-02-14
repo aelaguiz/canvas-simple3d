@@ -515,6 +515,10 @@ Simple3dPolygon.prototype.constructor = Simple3dPolygon;
 Simple3dPolygon.prototype.transform = function transform(transform,originOffset) {
 	var edge;
 	
+	if(undefined === originOffset) {
+		originOffset = this.origin;
+	}
+	
 	for(var i = 0, max = this.edges.length; i < max; i++) {
 		edge = this.edges[i];
 		
@@ -737,6 +741,10 @@ Simple3dText.prototype.drawPath = function drawPath(graphics, options, callback)
 }
 
 Simple3dText.prototype.transform = function transform(transform,originOffset) {
+	if(undefined === originOffset) {
+		originOffset = this.origin;
+	}
+	
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
 		this.glyphs[i].transform(transform,originOffset);
 	}
