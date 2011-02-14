@@ -1,3 +1,6 @@
 This is a simplistic library designed to allow rendering of 3d polygons, vectors, and text. Primarily useful for adding 3d transitions effects to otherwise 2d games.
 
 Uses canvas-typeface.js for text rendering.
+
+
+Demo @ http://serv1.aelag.com:8081
