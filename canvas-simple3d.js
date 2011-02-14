@@ -86,17 +86,17 @@ Simple3dCoord.prototype = {
 	},
 	
 	/**
-	 * resetTransform is the same as calling a reset then a transform, in fact - that's what it does
+	 * resetTransform is the same as calling a restore then a transform, in fact - that's what it does
 	 */
 	resetTransform: function resetTransform(transform,originOffset) {
-		this.reset();
+		this.restore();
 		this.transform(transform, originOffset);
 	},
 	
 	/**
 	 * Resets the coordinates to the pre-transformation coordinates if available
 	 */
-	reset: function reset() {
+	restore: function restore() {
 		if(undefined !== this.original) {
 			this.x = this.original.x;
 			this.y = this.original.y;
@@ -105,7 +105,7 @@ Simple3dCoord.prototype = {
 	},
 	
 	/**
-	 * Saves the current coordinates as the reset state
+	 * Saves the current coordinates as the restore state
 	 */
 	save: function save() {
 		this.original = {x: this.x, y: this.y, z: this.z};
@@ -130,6 +130,29 @@ Simple3dCoord.prototype = {
 		// Project onto 2d surface
 		this.projected.x = worldX / (proj.e/worldZ);
 		this.projected.y = worldY / (proj.e/worldZ);
+	},
+	
+	_expandRect: function _expandRect(rect, useProjected) {
+		var coordObj = this;
+		
+		if(useProjected)
+			coordObj = this.projected;
+			
+		if(coordObj.x > rect.right) {
+			rect.right = coordObj.x;
+		}
+		
+		if(coordObj.x < rect.left) {
+			rect.left = coordObj.x;
+		}
+		
+		if(coordObj.y > rect.top) {
+			rect.top = coordObj.y;
+		}
+		
+		if(coordObj.y < rect.bottom) {
+			rect.bottom = coordObj.y;
+		}
 	}
 }
 
@@ -185,18 +208,18 @@ Simple3dEdge.prototype = {
 	/**
 	 * Resets all coordinates
 	 */
-	reset: function reset() {
+	restore: function restore() {
 		if(this.start instanceof Simple3dCoord) {
-			this.start.reset();
+			this.start.restore();
 		}
 		
 		if(undefined !== this.controlPoints) {
 			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
-				this.controlPoints[i].reset();
+				this.controlPoints[i].restore();
 			}
 		}
 		
-		this.end.reset();
+		this.end.restore();
 	},
 	
 	/**
@@ -220,7 +243,7 @@ Simple3dEdge.prototype = {
 	 * Resets all points and then transforms
 	 */
 	resetTransform: function resetTransform(transform,originOffset) {
-		this.reset();
+		this.restore();
 		this.transform(transform,originOffset);
 	},
 	
@@ -377,7 +400,7 @@ Simple3dObject.prototype = {
 	/**
 	 * Reset the current polygon to it's pre-transformation state
 	 */
-	reset: function reset() {
+	restore: function restore() {
 		
 	},
 	
@@ -392,7 +415,7 @@ Simple3dObject.prototype = {
 	 * Reset the current polygon then apply the transform specified
 	 */
 	resetTransform: function resetTransform(transform, originOffset) {
-		this.reset();
+		this.restore();
 		this.transform(transform, originOffset);
 	},
 	
@@ -412,7 +435,21 @@ Simple3dObject.prototype = {
 	 */
 	drawPath: function drawPath(graphics, options) {
 		
-	}
+	},
+	
+	/**
+	 * Returns an object of form {left, top, right, bottom} with the screen coordinates of the bounding box for this object
+	 */
+	calcScreenBounds: function calcScreenBounds() {
+		
+	},
+	
+	/**
+	 * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+	 */
+	calcWorldBounds: function calcWorldBounds() {
+		
+	},
 }
 
 /**
@@ -488,13 +525,13 @@ Simple3dPolygon.prototype.transform = function transform(transform,originOffset)
 /**
  * Reset the current polygon to it's pre-transformation state
  */
-Simple3dPolygon.prototype.reset = function reset() {
+Simple3dPolygon.prototype.restore = function restore() {
 	var edge;
 	
 	for(var i = 0, max = this.edges.length; i < max; i++) {
 		edge = this.edges[i];
 		
-		edge.reset();		
+		edge.restore();		
 	}
 }
 
@@ -564,7 +601,40 @@ Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
 	}
 }
 
+Simple3dPolygon.prototype._calcBounds = function _calcBounds(useProjected, initRect) {
+	var edge,
+		bounds = initRect;
+	
+	if(undefined === bounds) {
+		bounds = {top: -100000, left: 100000, bottom: 100000, right: -100000 }; 
+	}
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		if(edge.start instanceof Simple3dCoord) {
+			edge.start._expandRect(bounds, useProjected);
+		}
+		
+		edge.end._expandRect(bounds, useProjected);
+	}
+	
+	return bounds;
+}
 
+/**
+ * Returns an object of form {left, top, right, bottom} with the screen coordinates of the bounding box for this object
+ */
+Simple3dPolygon.prototype.calcScreenBounds = function calcScreenBounds() {
+	return this._calcBounds(true);
+}
+	
+/**
+ * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+ */
+Simple3dPolygon.prototype.calcWorldBounds = function calcWorldBounds() {
+	return this._calcBounds(false);
+}
 
 Simple3dText = function Simple3dText(text, z, options, origin) {
 	Simple3dObject.call(this, origin);
@@ -675,9 +745,9 @@ Simple3dText.prototype.transform = function transform(transform,originOffset) {
 /**
  * Reset the current text to it's pre-transformation state
  */
-Simple3dText.prototype.reset = function reset() {
+Simple3dText.prototype.restore = function restore() {
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
-		this.glyphs[i].reset();
+		this.glyphs[i].restore();
 	}
 }
 
@@ -703,5 +773,33 @@ Simple3dText.prototype.resetTransform = function resetTransform(transform,origin
 Simple3dText.prototype.setProjection = function setProjection(e, near, far, screenWidth, screenHeight) {
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
 		this.glyphs[i].setProjection(e,near,far,screenWidth,screenHeight);
+	}
+}
+
+/**
+ * Returns an object of form {left, top, right, bottom} with the screen coordinates of the bounding box for this object
+ */
+Simple3dText.prototype.calcScreenBounds = function calcScreenBounds() {
+	var bounds,
+		ret = {top: -100000, left: 100000, bottom: 100000, right: -100000 };
+	
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		bounds = ret;
+		ret = this.glyphs[i]._calcBounds(true, bounds);
+	}
+	
+	return ret;
+}
+	
+/**
+ * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+ */
+Simple3dText.prototype.calcWorldBounds = function calcWorldBounds() {
+	var bounds,
+		ret = {top: -100000, left: 100000, bottom: 100000, right: -100000 };
+	
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		bounds = ret;
+		ret = this.glyphs[i]._calcBounds(false, bounds);
 	}
 }

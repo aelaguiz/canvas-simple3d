@@ -20,6 +20,7 @@ var mouseX = undefined,
 	rotationX =defaultRotationX,
 	rotationY = defaultRotationY,
 	vertexLabels = false,
+	vertexRects = false,
 	fill = false,
 	color = undefined;
 	
@@ -46,12 +47,13 @@ $(document).ready(function(){
 	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
 	
 	text[3] = new Simple3dText("t - Toggle vertex labels", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[4] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[5] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[6] = new Simple3dText("r - Reset Objects", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[7] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[8] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[9] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[4] = new Simple3dText("b - Toggle vertex rects", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[5] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[6] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[7] = new Simple3dText("r - Reset Objects", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[8] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[9] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[10] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
 	
 	/*
 	 * Step 2: Transform the objects, scale rotate, etc to get them the size we want
@@ -65,29 +67,32 @@ $(document).ready(function(){
 	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 100, 100, -100);
 	text[2].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -25, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -05, 0);
 	text[3].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -45, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -25, 0);
 	text[4].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -65, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -45, 0);
 	text[5].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -85, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -65, 0);
 	text[6].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -105, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -85, 0);
 	text[7].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -125, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -105, 0);
 	text[8].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -145, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -125, 0);
 	text[9].transform(textTransform);
 	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -145, 0);
+	text[10].transform(textTransform);
+	
 	/*
-	 * Step 3: Save the current state as the permanent state to be reset to
+	 * Step 3: Save the current state as the permanent state to be restore to
 	 */
 	for(var i = 0, max = text.length; i < max; i++) {
 		text[i].save();		
@@ -241,25 +246,29 @@ $(document).ready(function(){
 	    fill = !fill;
 	});
 	
+	$(window).jkey('b',function(){
+	    vertexRects = !vertexRects;
+	});
+	
 	$(window).jkey('c',function(){
 	    setRandomColor();
 	});
 	
 	$(window).jkey('r',function(){
 	   for(var i = 0, max = curves.length; i < max; i++) {
-			curves[i].reset(); 
+			curves[i].restore(); 
 		}
 		
 		for(var i = 0, max = cubes.length; i < max; i++) {
-			cubes[i].reset(); 
+			cubes[i].restore(); 
 		}
 		
 		for(var i = 0, max = text.length; i < max; i++) {
-			text[i].reset(); 
+			text[i].restore(); 
 		}
 		
 		
-		axis.reset();
+		axis.restore();
 		
 		d = defaultD;
 		far = defaultFar;
@@ -304,6 +313,13 @@ function setProjections() {
 	axis.setProjection(d, far, near, canvas.width, canvas.height);
 }
 
+function drawBounds(object, graphics, renderOptions) {
+	var rect = object.calcScreenBounds();
+	
+	
+	graphics.strokeRect(rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top);
+}
+
 function loop() {
 	var	renderOptions = {'labelVertices': vertexLabels};
 		
@@ -345,16 +361,25 @@ function loop() {
     for(var i = 0, max = curves.length; i < max; i++) {
     	curves[i].drawPath(graphics, renderOptions);
     	fillStroke();	
+    	
+    	if(vertexRects)
+    		drawBounds(curves[i], graphics, renderOptions);
     }
     
     for(var i = 0, max = cubes.length; i < max; i++) {
     	cubes[i].drawPath(graphics, renderOptions);
     	fillStroke();
+    	
+    	if(vertexRects)
+    		drawBounds(cubes[i], graphics, renderOptions);
     }
     
     for(var i = 0, max = text.length; i < max; i++) {
 		text[i].drawPath(graphics, renderOptions, function() {
 			fillStroke();
+			
+			if(vertexRects)
+    			drawBounds(text[i], graphics, renderOptions);
 		});
 	}
 	
