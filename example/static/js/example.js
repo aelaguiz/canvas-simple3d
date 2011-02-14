@@ -29,16 +29,16 @@ $(document).ready(function(){
 	
 	origin = new Simple3dCoord(0, 0, 0);
 
-	text[0] = new Simple3dText("Amir", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
-	text[1] = new Simple3dText("Was", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
-	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 12}, origin);
+	text[0] = new Simple3dText("Amir", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
+	text[1] = new Simple3dText("Was", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
+	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
 	
-	text[3] = new Simple3dText("t - Toggle vertex labels", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
-	text[4] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
-	text[5] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
-	text[6] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
-	text[7] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
-	text[8] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", color: "#FF0000", fontSize: 8}, origin);
+	text[3] = new Simple3dText("t - Toggle vertex labels", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[4] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[5] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[6] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[7] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[8] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
 	
 	var textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, -100, -100, 100);
 	text[0].transform(textTransform);
