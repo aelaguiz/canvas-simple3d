@@ -1,3 +1,8 @@
+var defaultD = 400,
+	defaultFar = 10000,
+	defaultRotationX = 0,
+	defaultRotationY = 0;
+	
 var canvas,
 	curves = [],
 	cubes = [],
@@ -5,15 +10,15 @@ var canvas,
 	axis,
 	axisTransform,
 	origin,
-	d = 400,				// Distance eye is from screen
-	far = 10000;			// Far clipping plane
+	d = defaultD,				// Distance eye is from screen
+	far = defaultFar;			// Far clipping plane
 
 var mouseX = undefined,
 	mouseY = undefined,
 	mouseDown = false,
 	angleIncrement = 5,
-	rotationX =0,
-	rotationY = 0,
+	rotationX =defaultRotationX,
+	rotationY = defaultRotationY,
 	vertexLabels = false,
 	fill = false,
 	color = undefined;
@@ -29,6 +34,13 @@ $(document).ready(function(){
 	
 	origin = new Simple3dCoord(0, 0, 0);
 
+	/*
+	 * Set up text objects
+	 */
+	 
+	 /*
+	  * Step 1: Build the objects on a unit-grid (1x1x1)
+	  */
 	text[0] = new Simple3dText("Amir", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
 	text[1] = new Simple3dText("Was", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
 	text[2] = new Simple3dText("Here", 0, {fontFamily: "Helvetiker", fontSize: 12}, origin);
@@ -36,36 +48,50 @@ $(document).ready(function(){
 	text[3] = new Simple3dText("t - Toggle vertex labels", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
 	text[4] = new Simple3dText("o - Orbit", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
 	text[5] = new Simple3dText("s - Stop Rotation", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[6] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[7] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
-	text[8] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[6] = new Simple3dText("r - Reset Objects", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[7] = new Simple3dText("f - Toggle fill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[8] = new Simple3dText("c - Random color", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
+	text[9] = new Simple3dText("wheel - Redpill", 0, {fontFamily: "Helvetiker", fontSize: 8}, origin);
 	
+	/*
+	 * Step 2: Transform the objects, scale rotate, etc to get them the size we want
+	 */
 	var textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, -100, -100, 100);
-	text[0].transform(textTransform);
-	
+	text[0].transform(textTransform); 
+
 	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 0, 0, 0);
 	text[1].transform(textTransform);
 	
 	textTransform = new Simple3dTransform(initX,initY,initZ, 5, 5, 5, 100, 100, -100);
 	text[2].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -45, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -25, 0);
 	text[3].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -65, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -45, 0);
 	text[4].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -85, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -65, 0);
 	text[5].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -105, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -85, 0);
 	text[6].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -125, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -105, 0);
 	text[7].transform(textTransform);
 	
-	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -145, 0);
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -125, 0);
 	text[8].transform(textTransform);
+	
+	textTransform = new Simple3dTransform(0,0,0, 3, 3, 3, -550, -145, 0);
+	text[9].transform(textTransform);
+	
+	/*
+	 * Step 3: Save the current state as the permanent state to be reset to
+	 */
+	for(var i = 0, max = text.length; i < max; i++) {
+		text[i].save();		
+	}
 	
 	/*
 	 * Set up curves
@@ -106,6 +132,10 @@ $(document).ready(function(){
 	
 	curveTransform = new Simple3dTransform(initX,initY,initZ, 35, 35, 35, -75, 75, 0);
 	curves[1].transform(curveTransform);
+	
+	for(var i = 0, max = curves.length; i < max; i++) {
+		curves[i].save();		
+	}
 	
 	/*
 	 * Set up cubes
@@ -157,6 +187,10 @@ $(document).ready(function(){
 	cubes[7].transform(cubeTransform);
 	//cubes[7].origin = new Simple3dCoord(75, -75, 125);
 	
+	for(var i = 0, max = cubes.length; i < max; i++) {
+		cubes[i].save();		
+	}
+	
 	/*
 	 * Set up axis
 	 */
@@ -169,6 +203,7 @@ $(document).ready(function(){
 	
 	axisTransform = new Simple3dTransform(initX,initY,initZ, 100,100,100,0,0,0);
 	axis.transform(axisTransform);
+	axis.save();
 	
 	setProjections();
 	
@@ -208,6 +243,31 @@ $(document).ready(function(){
 	
 	$(window).jkey('c',function(){
 	    setRandomColor();
+	});
+	
+	$(window).jkey('r',function(){
+	   for(var i = 0, max = curves.length; i < max; i++) {
+			curves[i].reset(); 
+		}
+		
+		for(var i = 0, max = cubes.length; i < max; i++) {
+			cubes[i].reset(); 
+		}
+		
+		for(var i = 0, max = text.length; i < max; i++) {
+			text[i].reset(); 
+		}
+		
+		
+		axis.reset();
+		
+		d = defaultD;
+		far = defaultFar;
+		
+		rotationX = defaultRotationX;
+		rotationY = defaultRotationY;
+		
+		setProjections();
 	});
 
 
@@ -300,7 +360,7 @@ function loop() {
 	
     
     axis.drawPath(graphics, renderOptions);
-    fillStroke();
+    graphics.stroke();
     
     graphics.restore();
     

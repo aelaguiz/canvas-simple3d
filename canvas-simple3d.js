@@ -38,6 +38,8 @@ Simple3dCoord = function Simple3dCoord(x,y,z) {
 	this.z = z;
 	
 	this.projected = {x: undefined, y: undefined};
+	
+	// this.original { x,y.z} -- Gets added once the coordinate is transformed
 }
 
 var _objectOrigin = new Simple3dCoord(0,0,0);
@@ -54,7 +56,12 @@ Simple3dCoord.prototype = {
 	transform: function transform(transform,originOffset) {
 		if(undefined === originOffset)
 			originOffset = _objectOrigin;
-			 
+		
+		// Save coordinates if they are not saved
+		if(undefined === this.original) {
+			this.original = {x: this.x, y: this.y, z: this.z};
+		}
+		
 		var x = this.x + originOffset.x,
 			y = this.y + originOffset.y,
 			z = this.z + originOffset.z,
@@ -76,6 +83,32 @@ Simple3dCoord.prototype = {
 		this.z = ((x * -sinY) + 
 						(y * (sinX * cosY)) + 
 						(z * (cosX * cosY)) - originOffset.z)*transform.scaleZ + transform.transZ;
+	},
+	
+	/**
+	 * resetTransform is the same as calling a reset then a transform, in fact - that's what it does
+	 */
+	resetTransform: function resetTransform(transform,originOffset) {
+		this.reset();
+		this.transform(transform, originOffset);
+	},
+	
+	/**
+	 * Resets the coordinates to the pre-transformation coordinates if available
+	 */
+	reset: function reset() {
+		if(undefined !== this.original) {
+			this.x = this.original.x;
+			this.y = this.original.y;
+			this.z = this.original.z;
+		}
+	},
+	
+	/**
+	 * Saves the current coordinates as the reset state
+	 */
+	save: function save() {
+		this.original = {x: this.x, y: this.y, z: this.z};
 	},
 	
 	/**
@@ -147,6 +180,48 @@ Simple3dEdge.prototype = {
 		}
 		
 		this.end.transform(transform, originOffset);
+	},
+	
+	/**
+	 * Resets all coordinates
+	 */
+	reset: function reset() {
+		if(this.start instanceof Simple3dCoord) {
+			this.start.reset();
+		}
+		
+		if(undefined !== this.controlPoints) {
+			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
+				this.controlPoints[i].reset();
+			}
+		}
+		
+		this.end.reset();
+	},
+	
+	/**
+	 * Saves all coordinates
+	 */
+	save: function save() {
+		if(this.start instanceof Simple3dCoord) {
+			this.start.save();
+		}
+		
+		if(undefined !== this.controlPoints) {
+			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
+				this.controlPoints[i].save();
+			}
+		}
+		
+		this.end.save();
+	},
+	
+	/**
+	 * Resets all points and then transforms
+	 */
+	resetTransform: function resetTransform(transform,originOffset) {
+		this.reset();
+		this.transform(transform,originOffset);
 	},
 	
 	/**
@@ -299,6 +374,27 @@ Simple3dObject.prototype = {
 
 	},
 	
+	/**
+	 * Reset the current polygon to it's pre-transformation state
+	 */
+	reset: function reset() {
+		
+	},
+	
+	/**
+	 * Saves the current polygon
+	 */
+	save: function save() {
+		
+	},
+	
+	/**
+	 * Reset the current polygon then apply the transform specified
+	 */
+	resetTransform: function resetTransform(transform, originOffset) {
+		this.reset();
+		this.transform(transform, originOffset);
+	},
 	
 	
 	/**
@@ -386,6 +482,32 @@ Simple3dPolygon.prototype.transform = function transform(transform,originOffset)
 		edge = this.edges[i];
 		
 		edge.transform(transform, originOffset);		
+	}
+}
+
+/**
+ * Reset the current polygon to it's pre-transformation state
+ */
+Simple3dPolygon.prototype.reset = function reset() {
+	var edge;
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		edge.reset();		
+	}
+}
+
+/**
+ * Saves the current polygon as it's pre-transformation state
+ */
+Simple3dPolygon.prototype.save = function save() {
+	var edge;
+	
+	for(var i = 0, max = this.edges.length; i < max; i++) {
+		edge = this.edges[i];
+		
+		edge.save();		
 	}
 }
 
@@ -547,6 +669,34 @@ Simple3dText.prototype.drawPath = function drawPath(graphics, options, callback)
 Simple3dText.prototype.transform = function transform(transform,originOffset) {
 	for(var i = 0, max = this.glyphs.length; i < max; i++) {
 		this.glyphs[i].transform(transform,originOffset);
+	}
+}
+
+/**
+ * Reset the current text to it's pre-transformation state
+ */
+Simple3dText.prototype.reset = function reset() {
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		this.glyphs[i].reset();
+	}
+}
+
+
+/**
+ * Saves the current text state as the pre-transformation state
+ */
+Simple3dText.prototype.save = function save() {
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		this.glyphs[i].save();
+	}
+}
+
+/**
+ * Resets the current text and applies the specified transformation to each glyph
+ */
+Simple3dText.prototype.resetTransform = function resetTransform(transform,originOffset) {
+	for(var i = 0, max = this.glyphs.length; i < resetTransform; i++) {
+		this.glyphs[i].resetTransform(transform, originOffset);
 	}
 }
 
