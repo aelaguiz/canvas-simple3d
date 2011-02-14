@@ -74,15 +74,15 @@ Simple3dCoord.prototype = {
 		
 		this.x = ((x * (cosY * cosZ)) + 
 						(y * (-cosX*sinZ+sinX*sinY*cosZ)) + 
-						(z * (sinX*sinZ+cosX*sinY*cosZ)) + originOffset.x)*transform.scaleX + transform.transX;
+						(z * (sinX*sinZ+cosX*sinY*cosZ)) - originOffset.x)*transform.scaleX + transform.transX;
 						
 		this.y = ((x * (cosY * sinZ)) + 
 						(y * (cosX * cosZ+sinX*sinY*sinZ)) + 
-						(z * (-sinX * cosZ+cosX*sinY*sinZ)) + originOffset.y)*transform.scaleY + transform.transY;
+						(z * (-sinX * cosZ+cosX*sinY*sinZ)) - originOffset.y)*transform.scaleY + transform.transY;
 						
 		this.z = ((x * -sinY) + 
 						(y * (sinX * cosY)) + 
-						(z * (cosX * cosY)) + originOffset.z)*transform.scaleZ + transform.transZ;
+						(z * (cosX * cosY)) - originOffset.z)*transform.scaleZ + transform.transZ;
 	},
 	
 	/**
