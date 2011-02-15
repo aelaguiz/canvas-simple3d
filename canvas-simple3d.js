@@ -843,6 +843,6 @@ Simple3dText.prototype.calcObjectBounds = function calcObjectBounds() {
 /**
  * Returns an object of form {left, top, right, bottom} with the original coordinates of the bounding box for this object
  */
-Simple3dPolygon.prototype.calcOriginalBounds = function calcOriginalBounds() {
+Simple3dText.prototype.calcOriginalBounds = function calcOriginalBounds() {
 	return this._calcBounds(_Simple3dCoordSourceEnum.CS_OBJECT_ORIGINAL);
 }
