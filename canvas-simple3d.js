@@ -92,9 +92,9 @@ Simple3dCoord.prototype = {
 	},
 	
 	/**
-	 * resetTransform is the same as calling a restore then a transform, in fact - that's what it does
+	 * transformOriginal is the same as calling a restore then a transform, in fact - that's what it does
 	 */
-	resetTransform: function resetTransform(transform,originOffset) {
+	transformOriginal: function transformOriginal(transform,originOffset) {
 		this.restore();
 		this.transform(transform, originOffset);
 	},
@@ -253,7 +253,7 @@ Simple3dEdge.prototype = {
 	/**
 	 * Resets all points and then transforms
 	 */
-	resetTransform: function resetTransform(transform,originOffset) {
+	transformOriginal: function transformOriginal(transform,originOffset) {
 		this.restore();
 		this.transform(transform,originOffset);
 	},
@@ -440,7 +440,7 @@ Simple3dObject.prototype = {
 	/**
 	 * Reset the current polygon then apply the transform specified
 	 */
-	resetTransform: function resetTransform(transform, originOffset) {
+	transformOriginal: function transformOriginal(transform, originOffset) {
 		this.restore();
 		this.transform(transform, originOffset);
 	},
@@ -801,9 +801,9 @@ Simple3dText.prototype.save = function save() {
 /**
  * Resets the current text and applies the specified transformation to each glyph
  */
-Simple3dText.prototype.resetTransform = function resetTransform(transform,originOffset) {
-	for(var i = 0, max = this.glyphs.length; i < resetTransform; i++) {
-		this.glyphs[i].resetTransform(transform, originOffset);
+Simple3dText.prototype.transformOriginal = function transformOriginal(transform,originOffset) {
+	for(var i = 0, max = this.glyphs.length; i < transformOriginal; i++) {
+		this.glyphs[i].transformOriginal(transform, originOffset);
 	}
 }
 
