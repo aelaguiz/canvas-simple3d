@@ -6,6 +6,7 @@ Simple3dSpaceEnum = {
 	CAMERA: 2
 };
 
+
 /**
  * simple3d rotation definition
  * @constructor
@@ -25,6 +26,11 @@ Simple3dTransform = function Simple3dTransform(degX,degY,degZ, scaleX, scaleY, s
 	this.transZ = transZ;
 }
 
+_Simple3dCoordSourceEnum = {
+	CS_OBJECT : 0,
+	CS_CAMERA: 1,
+	CS_OBJECT_ORIGINAL: 2
+}  
 /**
  * simple 3d coordinates (point)
  * @constructor
@@ -132,11 +138,16 @@ Simple3dCoord.prototype = {
 		this.projected.y = worldY / (proj.e/worldZ);
 	},
 	
-	_expandRect: function _expandRect(rect, useProjected) {
+	_expandRect: function _expandRect(rect, source) {
 		var coordObj = this;
 		
-		if(useProjected)
+		if(source === _Simple3dCoordSourceEnum.CS_CAMERA)
 			coordObj = this.projected;
+		else if(source === _Simple3dCoordSourceEnum.CS_OBJECT_ORIGINAL) {
+			if(undefined !== this.original) {
+				coordObj = this.original;
+			}
+		}
 			
 		if(coordObj.x > rect.right) {
 			rect.right = coordObj.x;
@@ -273,7 +284,22 @@ Simple3dEdge.prototype = {
 		}
 		
 		graphics.lineTo(this.end.projected.x, this.end.projected.y);
+	},
+	
+	_expandRect: function _expandRect(rect, source) {
+		if(this.start instanceof Simple3dCoord) {
+			this.start._expandRect(rect, source);
+		}
+		
+		if(undefined !== this.controlPoints) {
+			for(var i = 0, max = this.controlPoints.length; i < max; i++) {
+				this.controlPoints[i]._expandRect(rect, source);
+			}
+		}
+		
+		this.end._expandRect(rect, source);
 	}
+
 }
 
 /**
@@ -445,9 +471,9 @@ Simple3dObject.prototype = {
 	},
 	
 	/**
-	 * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+	 * Returns an object of form {left, top, right, bottom} with the object coordinates of the bounding box for this object
 	 */
-	calcWorldBounds: function calcWorldBounds() {
+	calcObjectBounds: function calcObjectBounds() {
 		
 	},
 }
@@ -605,7 +631,7 @@ Simple3dPolygon.prototype.drawPath = function drawPath(graphics, options) {
 	}
 }
 
-Simple3dPolygon.prototype._calcBounds = function _calcBounds(useProjected, initRect) {
+Simple3dPolygon.prototype._calcBounds = function _calcBounds(source, initRect) {
 	var edge,
 		bounds = initRect;
 	
@@ -615,12 +641,8 @@ Simple3dPolygon.prototype._calcBounds = function _calcBounds(useProjected, initR
 	
 	for(var i = 0, max = this.edges.length; i < max; i++) {
 		edge = this.edges[i];
-		
-		if(edge.start instanceof Simple3dCoord) {
-			edge.start._expandRect(bounds, useProjected);
-		}
-		
-		edge.end._expandRect(bounds, useProjected);
+
+		edge._expandRect(bounds, source);
 	}
 	
 	return bounds;
@@ -630,14 +652,21 @@ Simple3dPolygon.prototype._calcBounds = function _calcBounds(useProjected, initR
  * Returns an object of form {left, top, right, bottom} with the screen coordinates of the bounding box for this object
  */
 Simple3dPolygon.prototype.calcScreenBounds = function calcScreenBounds() {
-	return this._calcBounds(true);
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_CAMERA);
 }
 	
 /**
- * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+ * Returns an object of form {left, top, right, bottom} with the object coordinates of the bounding box for this object
  */
-Simple3dPolygon.prototype.calcWorldBounds = function calcWorldBounds() {
-	return this._calcBounds(false);
+Simple3dPolygon.prototype.calcObjectBounds = function calcObjectBounds() {
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_OBJECT);
+}
+
+/**
+ * Returns an object of form {left, top, right, bottom} with the original coordinates of the bounding box for this object
+ */
+Simple3dPolygon.prototype.calcOriginalBounds = function calcOriginalBounds() {
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_OBJECT_ORIGINAL);
 }
 
 Simple3dText = function Simple3dText(text, z, options, origin) {
@@ -784,30 +813,36 @@ Simple3dText.prototype.setProjection = function setProjection(e, near, far, scre
 	}
 }
 
+Simple3dText.prototype._calcBounds = function _calcBounds(source) {
+	var bounds,
+		ret = {top: -100000, left: 100000, bottom: 100000, right: -100000 };
+	
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
+		bounds = ret;
+		ret = this.glyphs[i]._calcBounds(source, bounds);
+	}
+	
+	return ret
+}
+
 /**
  * Returns an object of form {left, top, right, bottom} with the screen coordinates of the bounding box for this object
  */
 Simple3dText.prototype.calcScreenBounds = function calcScreenBounds() {
-	var bounds,
-		ret = {top: -100000, left: 100000, bottom: 100000, right: -100000 };
-	
-	for(var i = 0, max = this.glyphs.length; i < max; i++) {
-		bounds = ret;
-		ret = this.glyphs[i]._calcBounds(true, bounds);
-	}
-	
-	return ret;
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_CAMERA);
 }
 	
 /**
- * Returns an object of form {left, top, right, bottom} with the world coordinates of the bounding box for this object
+ * Returns an object of form {left, top, right, bottom} with the object coordinates of the bounding box for this object
  */
-Simple3dText.prototype.calcWorldBounds = function calcWorldBounds() {
-	var bounds,
-		ret = {top: -100000, left: 100000, bottom: 100000, right: -100000 };
-	
-	for(var i = 0, max = this.glyphs.length; i < max; i++) {
-		bounds = ret;
-		ret = this.glyphs[i]._calcBounds(false, bounds);
-	}
+Simple3dText.prototype.calcObjectBounds = function calcObjectBounds() {
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_OBJECT);
+}
+
+
+/**
+ * Returns an object of form {left, top, right, bottom} with the original coordinates of the bounding box for this object
+ */
+Simple3dPolygon.prototype.calcOriginalBounds = function calcOriginalBounds() {
+	return this._calcBounds(_Simple3dCoordSourceEnum.CS_OBJECT_ORIGINAL);
 }
