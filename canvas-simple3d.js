@@ -802,7 +802,11 @@ Simple3dText.prototype.save = function save() {
  * Resets the current text and applies the specified transformation to each glyph
  */
 Simple3dText.prototype.transformOriginal = function transformOriginal(transform,originOffset) {
-	for(var i = 0, max = this.glyphs.length; i < transformOriginal; i++) {
+	if(undefined === originOffset) {
+		originOffset = this.origin;
+	}
+	
+	for(var i = 0, max = this.glyphs.length; i < max; i++) {
 		this.glyphs[i].transformOriginal(transform, originOffset);
 	}
 }
